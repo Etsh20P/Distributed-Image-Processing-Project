@@ -5,7 +5,7 @@ import paramiko
 ssh = None
 username = 'ubuntu'  
 # Frankfurt -> "D:/Distributed Computing/Project/AWS key/Project-Frankfurt.pem"
-private_key_path = "D:/Distributed Computing/Project/AWS key/Project-Test-01.pem"  # stockholm -> D:/Distributed Computing/Project/AWS key/Project-Test-01.pem
+private_key_path = "D:/Distributed Computing/Project/AWS keys/Project-Test-01.pem"  # stockholm -> D:/Distributed Computing/Project/AWS key/Project-Test-01.pem
 public_ip = None  # Define a global variable for storing public DNS
 
  # Create EC2 client  Frankfurt -> region_name='eu-central-1
@@ -35,11 +35,15 @@ def execute_ssh_commands(ssh_connection):
     # Commands to install Python and required libraries
     # 'sudo apt install -y python3-pyopencl',
     # 'sudo apt install -y python3-mpi4py',
+    # 'sudo apt update',
     install_commands = [
-        'sudo apt update',
         'sudo apt install -y python3 python3-pip python3-dev',
         'sudo apt install -y python3-opencv',
-        'sudo apt install -y python3-boto3'
+        'sudo apt install -y python3-boto3',
+        'sudo pip3 install flask',
+        'sudo pip3 install aiohttp',
+        'sudo pip3 install numpy'
+
     ]
 
     # Execute commands
@@ -138,10 +142,10 @@ def execute_remote_script(remote_script_path, ssh_connection):
 
     try:
         # Make the script executable
-        ssh_connection.exec_command(f"chmod +x {remote_script_path}")
+        ssh_connection.exec_command(f"sudo chmod a+x {remote_script_path}")
 
         # Execute the Python script
-        stdin, stdout, stderr = ssh_connection.exec_command(f"python3 {remote_script_path}")
+        stdin, stdout, stderr = ssh_connection.exec_command(f"sudo python3 {remote_script_path}")
         
         # Read the output
         output = stdout.read().decode('utf-8')

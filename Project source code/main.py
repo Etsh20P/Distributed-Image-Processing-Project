@@ -30,15 +30,46 @@ import S3_API
 
 # EC2_API.run_ec2_instance('i-030f706b9e2ae625f')
 
-ssh = EC2_API.initialize_ssh_connection('i-030f706b9e2ae625f')
+
 # install_command = 'sudo pip3 install sys'
 # stdin, stdout, stderr = ssh.exec_command(install_command)
 # print(stderr.read().decode('utf-8'))
 
 # EC2_API.upload_file('C:/Users/oem/Downloads/sudoku.jpg', '/home/ubuntu/image_sud.jpg',ssh)
-EC2_API.upload_file('D:/Distributed Computing/Project/Project source code/image_processing.py', '/home/ubuntu/image_processing_script.py',ssh)
 
-output = EC2_API.execute_remote_script_with_args('/home/ubuntu/image_processing_script.py', ssh, '/home/ubuntu/image_sud.jpg', 'blur', 'image_proc_blured.jpg' )
+# ssh = EC2_API.initialize_ssh_connection('i-030f706b9e2ae625f')
 
-print(output)
+# EC2_API.upload_file('D:/Distributed Computing/Project/Project source code/image_processing.py', '/home/ubuntu/image_processing_script.py',ssh)
 
+# output = EC2_API.execute_remote_script_with_args('/home/ubuntu/image_processing_script.py', ssh, '/home/ubuntu/image_sud.jpg', 'blur', 'image_proc_blured.jpg' )
+
+# print(output)
+
+
+# EC2_API.stop_ec2_instance('i-030f706b9e2ae625f')
+
+
+# ssh = EC2_API.initialize_ssh_connection('i-0929e679594ee795a')
+# EC2_API.execute_ssh_commands(ssh)
+
+# ssh1 = EC2_API.initialize_ssh_connection('i-030f706b9e2ae625f')
+# install_command = 'sudo pip3 install flask'
+# stdin, stdout, stderr = ssh.exec_command(install_command)
+
+# EC2_API.run_ec2_instance('i-030f706b9e2ae625f')
+# EC2_API.run_ec2_instance('i-0929e679594ee795a')
+
+# ssh = EC2_API.initialize_ssh_connection('i-030f706b9e2ae625f')
+# EC2_API.execute_ssh_commands(ssh)
+ssh1 = EC2_API.initialize_ssh_connection('i-0929e679594ee795a')
+# EC2_API.execute_ssh_commands(ssh1)
+# install_command = 'sudo pip3 install flask'
+# stdin, stdout, stderr = ssh1.exec_command(install_command)
+# stdin, stdout, stderr = ssh1.exec_command(install_command)
+
+# EC2_API.upload_file('image_processing_flask.py','/home/ubuntu/image_processing_flask1.py',ssh1)
+# EC2_API.upload_file('flask_app.py','/home/ubuntu/flask_app1.py',ssh1)
+
+EC2_API.execute_remote_script('/home/ubuntu/image_processing_flask1.py',ssh1)
+# EC2_API.execute_remote_script('/home/ubuntu/flask_app1.py',ssh1)
+# EC2_API.upload_file('/home/ubuntu/health.html',ssh1)
