@@ -35,15 +35,19 @@ def execute_ssh_commands(ssh_connection):
     # Commands to install Python and required libraries
     # 'sudo apt install -y python3-pyopencl',
     # 'sudo apt install -y python3-mpi4py',
-    # 'sudo apt update',
+    # 'sudo apt update', ####################### 
+    # 'sudo pip3 install aiohttp'
+    # 'sudo apt-get install -y libopenmpi-dev',
+    #     'sudo pip3 install mpi4py'
+    # 'aws s3 cp s3://dist-proj-buck-1/script/image_processing_flask.py /home/ubuntu/python_script.py',
     install_commands = [
+        'sudo apt update',
         'sudo apt install -y python3 python3-pip python3-dev',
         'sudo apt install -y python3-opencv',
         'sudo apt install -y python3-boto3',
         'sudo pip3 install flask',
-        'sudo pip3 install aiohttp',
         'sudo pip3 install numpy'
-
+        
     ]
 
     # Execute commands
@@ -143,25 +147,25 @@ def execute_remote_script(remote_script_path, ssh_connection):
     try:
         # Make the script executable
         ssh_connection.exec_command(f"sudo chmod a+x {remote_script_path}")
+        print(f"Script {remote_script_path} made executable successfully.")
 
         # Execute the Python script
         stdin, stdout, stderr = ssh_connection.exec_command(f"sudo python3 {remote_script_path}")
-        
+
         # Read the output
         output = stdout.read().decode('utf-8')
+        print(f"Script output:\n{output}")
 
         # Check for errors
         error = stderr.read().decode('utf-8')
         if error:
             print(f"Error executing script: {error}")
-        
+
         return output
-    
 
     except Exception as e:
         print(f"Error executing script: {str(e)}")
         return None
-
 
 def create_ec2_instance(instance_name):
 
@@ -265,6 +269,25 @@ def assign_iam_role_to_instance(instance_id, iam_role_name):
     except Exception as e:
         print(f"Error: {str(e)}")
         return False
+
+
+
+
+def add_instance_to_target_group(instance_id, target_group_arn):
+    elbv2_client = boto3.client('elbv2')
+    
+    response = elbv2_client.register_targets(
+        TargetGroupArn=target_group_arn,
+        Targets=[
+            {
+                'Id': instance_id,
+            },
+        ]
+    )
+    
+    print(f"Instance {instance_id} added to target group {target_group_arn}")
+
+
 
 
 # Example usage:
