@@ -10,7 +10,7 @@ public_ip = None  # Define a global variable for storing public DNS
 
  # Create EC2 client  Frankfurt -> region_name='eu-central-1
 ec2 = boto3.resource('ec2', region_name='eu-north-1') # stockholm
-
+ec2_client = boto3.client('ec2')
 
 
 def initialize_ssh_connection(instance_id):
@@ -40,13 +40,15 @@ def execute_ssh_commands(ssh_connection):
     # 'sudo apt-get install -y libopenmpi-dev',
     #     'sudo pip3 install mpi4py'
     # 'aws s3 cp s3://dist-proj-buck-1/script/image_processing_flask.py /home/ubuntu/python_script.py',
+    # 'sudo pip3 install flask',
+    #         'sudo apt --fix-broken install',
     install_commands = [
-        'sudo apt update',
+        'sudo apt-get update && sudo apt-get upgrade -y',
         'sudo apt install -y python3 python3-pip python3-dev',
         'sudo apt install -y python3-opencv',
         'sudo apt install -y python3-boto3',
-        'sudo pip3 install flask',
-        'sudo pip3 install numpy'
+        'sudo apt install -y python3-flask',
+        'sudo apt install -y python3-numpy'
         
     ]
 
@@ -143,13 +145,14 @@ def execute_remote_script(remote_script_path, ssh_connection):
     Returns:
     - str: Output of the executed command.
     """
+   
 
     try:
         # Make the script executable
         ssh_connection.exec_command(f"sudo chmod a+x {remote_script_path}")
         print(f"Script {remote_script_path} made executable successfully.")
 
-        # Execute the Python script
+        # Execute the Python script        
         stdin, stdout, stderr = ssh_connection.exec_command(f"sudo python3 {remote_script_path}")
 
         # Read the output
@@ -162,10 +165,12 @@ def execute_remote_script(remote_script_path, ssh_connection):
             print(f"Error executing script: {error}")
 
         return output
+        
 
     except Exception as e:
         print(f"Error executing script: {str(e)}")
         return None
+
 
 def create_ec2_instance(instance_name):
 
@@ -173,7 +178,7 @@ def create_ec2_instance(instance_name):
     key_pair_name = "Project-Test-01" # stockholm
 
     # AMI ID for Ubuntu (Frankfurt)-> ami-023adaba598e661ac
-    ubuntu_ami_id = 'ami-0914547665e6a707c' # stockholm
+    ubuntu_ami_id = 'ami-0705384c0b33c194c' # stockholm ami-0914547665e6a707c
 
 
     # Security group id for Frankfurt -> sg-0734464f28a13491f
@@ -206,6 +211,10 @@ def create_ec2_instance(instance_name):
         ]
     )
 
+    instance[0].wait_until_running()
+    waiter = ec2_client.get_waiter('instance_status_ok')
+    waiter.wait(InstanceIds=[instance[0].id])
+    print ("instance created successfully")
     return instance[0].id  # Return the instance ID
 
 

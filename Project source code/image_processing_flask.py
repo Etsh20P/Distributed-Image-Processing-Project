@@ -8,7 +8,7 @@ import os
 
 
 app = Flask(__name__)
-app.secret_key = 'mFPQhndCwW/btJsQQuCSxpDOc9Hn1kEoGtQNxAfF'  # Set a secret key for session management
+
 
 
 @app.route('/health')
@@ -79,7 +79,7 @@ def image_processing(image, output_image_path, operation):
             _, processed_image = cv2.threshold(image, 127, 255, cv2.THRESH_BINARY)
 
 
-        ## advanced image processing
+        ##### advanced image processing ######
         elif operation == 'line_detection':
 
             edges = cv2.Canny(image, 50, 150, apertureSize=3)
