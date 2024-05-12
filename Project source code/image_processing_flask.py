@@ -45,7 +45,7 @@ def process_image():
         image_processing(image, output_image_path, operation)
 
         # Upload processed image to S3
-        s3_key = f'test/{output_image_name}'
+        s3_key = f'processed_images/{output_image_name}'
         upload_to_s3(output_image_path, s3_bucket_name, s3_key)
 
         # Get download link for processed image
@@ -173,6 +173,7 @@ def get_instance_id():
             return response.text
         else:
             return None
+        
     except Exception as e:
         # Log error and return None
         print("Error getting instance ID:", e)

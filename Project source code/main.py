@@ -2,112 +2,8 @@ import EC2_API
 import S3_API
 import time
 import boto3
+import threading
 from datetime import datetime, timedelta  # Import datetime module
-
-# not working needs permission to download
-# S3_API.S3_download_file('dist-proj-buck-1', 'requested/sudoku.jpg', 'C:/Users/oem/Downloads')
-
-# EC2_API.EC2_run_instance('i-0e38ba40ce0a1523b')
-
-# ssh = EC2_API.initialize_ssh_connection('i-030f706b9e2ae625f')
-
-
-
- 
-# EC2_API.upload_python_script('D:/Distributed Computing/Project/Project source code/python_script.py', '/home/ubuntu/test3.py')
-# EC2_API.execute_python_script('/home/ubuntu/test3.py')
-# EC2_API.run_ec2_instance('i-07d897d2eecfda382')
-# EC2_API.run_ec2_instance('i-030f706b9e2ae625f')
-# ssh = EC2_API.initialize_ssh_connection('i-030f706b9e2ae625f')
-# # EC2_API.upload_file('C:/Users/oem/Downloads/processed_image.jpg', '/home/ubuntu/img1.jpg',ssh)
-# EC2_API.upload_file('D:/Distributed Computing/Project/Project source code/image_processing.py', '/home/ubuntu/img_proc5.py',ssh)
-# output = EC2_API.execute_remote_script('/home/ubuntu/img_proc5.py',ssh)
-# print(output)
-
-
-# EC2_API.stop_ec2_instance('i-0d2b2c20a04ea8073')
-
-# EC2_API.assign_iam_role_to_instance('i-0d2b2c20a04ea8073', 'S3-Access')
-
-
-# EC2_API.run_ec2_instance('i-030f706b9e2ae625f')
-
-
-# install_command = 'sudo pip3 install sys'
-# stdin, stdout, stderr = ssh.exec_command(install_command)
-# print(stderr.read().decode('utf-8'))
-
-# EC2_API.upload_file('C:/Users/oem/Downloads/sudoku.jpg', '/home/ubuntu/image_sud.jpg',ssh)
-
-# ssh = EC2_API.initialize_ssh_connection('i-030f706b9e2ae625f')
-
-# EC2_API.upload_file('D:/Distributed Computing/Project/Project source code/image_processing.py', '/home/ubuntu/image_processing_script.py',ssh)
-
-# output = EC2_API.execute_remote_script_with_args('/home/ubuntu/image_processing_script.py', ssh, '/home/ubuntu/image_sud.jpg', 'blur', 'image_proc_blured.jpg' )
-
-# print(output)
-
-
-# EC2_API.stop_ec2_instance('i-030f706b9e2ae625f')
-
-
-# ssh = EC2_API.initialize_ssh_connection('i-0929e679594ee795a')
-# EC2_API.execute_ssh_commands(ssh)
-
-# ssh1 = EC2_API.initialize_ssh_connection('i-030f706b9e2ae625f')
-# install_command = 'sudo pip3 install flask'
-# stdin, stdout, stderr = ssh.exec_command(install_command)
-
-# EC2_API.run_ec2_instance('i-030f706b9e2ae625f')
-# EC2_API.run_ec2_instance('i-0929e679594ee795a')
-
-# ssh = EC2_API.initialize_ssh_connection('i-030f706b9e2ae625f')
-# EC2_API.execute_ssh_commands(ssh)
-# ssh1 = EC2_API.initialize_ssh_connection('i-0929e679594ee795a')
-# EC2_API.execute_ssh_commands(ssh1)
-# install_command = 'sudo pip3 install flask'
-# stdin, stdout, stderr = ssh1.exec_command(install_command)
-# stdin, stdout, stderr = ssh1.exec_command(install_command)
-
-# EC2_API.upload_file('image_processing_flask.py','/home/ubuntu/image_processing_flask1.py',ssh1)
-# EC2_API.upload_file('flask_app.py','/home/ubuntu/flask_app1.py',ssh1)
-
-# EC2_API.execute_remote_script('/home/ubuntu/image_processing_flask1.py',ssh1)
-# EC2_API.execute_remote_script('/home/ubuntu/flask_app1.py',ssh1)
-# EC2_API.upload_file('/home/ubuntu/health.html',ssh1)
-
-# ssh1 = EC2_API.initialize_ssh_connection('i-02963630086cecad9')
-
-
-# EC2_API.add_instance_to_target_group('i-02963630086cecad9', 'arn:aws:elasticloadbalancing:eu-north-1:851725392781:targetgroup/test-img-proc-TG/cdfc847103e4fb62')
-# EC2_API.add_instance_to_target_group('i-08b55b11cd902449b', 'arn:aws:elasticloadbalancing:eu-north-1:851725392781:targetgroup/test-img-proc-TG/cdfc847103e4fb62')
-# EC2_API.execute_ssh_commands(ssh1)
-
-# EC2_API.assign_iam_role_to_instance('i-08b55b11cd902449b', 'S3-Access')
-# EC2_API.assign_iam_role_to_instance('i-02963630086cecad9', 'S3-Access')
-
-
-### ssh = EC2_API.initialize_ssh_connection('i-08b55b11cd902449b')
-### EC2_API.upload_file('D:/Distributed Computing/Project/Project source code/image_processing_flask.py', '/home/ubuntu/image_processing_script2.py', ssh)
-### EC2_API.execute_remote_script('/home/ubuntu/image_processing_script2.py', ssh)
-
-# ssh1 = EC2_API.initialize_ssh_connection('i-02963630086cecad9')
-# EC2_API.upload_file('D:/Distributed Computing/Project/Project source code/image_processing_flask.py', '/home/ubuntu/image_processing_script2.py', ssh1)
-# EC2_API.execute_remote_script('/home/ubuntu/image_processing_script2.py', ssh1)
-# while True:
-    # if requests > 4:
-    #     for i in range(request/2):
-    #         id = EC2_API.create_ec2_instance()
-    #         EC2_API.initialize_ssh_connection()
-    #         EC2_API.execute_ssh_commands()
-    #         add_instance_to_target_group(id)
-
-    # elif get_healthy_instances < 2:
-    #     for i in range(2-get_healthy_instances):
-    #         EC2_API.create_ec2_instance()
-    #         EC2_API.initialize_ssh_connection()
-    #         EC2_API.execute_ssh_commands()
-
 
 
 # Initialize AWS clients
@@ -115,8 +11,18 @@ ec2_client = boto3.client('ec2')
 elbv2_client = boto3.client('elbv2')
 
 # Define scaling parameters
-MAX_REQUESTS_BEFORE_SCALING = 100
-DESIRED_INSTANCE_COUNT = 3
+MAX_REQUESTS_BEFORE_SCALING = 5
+MAX_NUMBER_OF_INSTANCES = 8
+DESIRED_INSTANCE_COUNT = 2
+TARGET_GROUP_ARN ='arn:aws:elasticloadbalancing:eu-central-1:851725392781:targetgroup/Image-Processing-Frank-TG/4594d70e60686eda'
+IMAGE_PROCESSING_SCRIPT_PATH = 'D:/Distributed Computing/Project/Project source code/image_processing_flask.py'
+REMOTE_SCRIPT_PATH = '/home/ubuntu/image_processing_flask_script.py'
+
+REQUESTS_PER_INSTANCE = 5
+request_count = 0
+
+
+
 
 
 
@@ -187,40 +93,7 @@ def get_number_of_instances_in_target_group(target_group_arn):
         return None
 
 
-########### EC2_API.create_ec2_instance()
-def create_instance():
-    # Placeholder function to create a new EC2 instance
-    # In a real-world scenario, you would create an EC2 instance using boto3 or AWS SDK
-    print("Creating a new EC2 instance...")
-    # Code to create a new EC2 instance
-    # Example: response = ec2_client.run_instances(ImageId='ami-12345678', MinCount=1, MaxCount=1)
-    # Extract instance ID from response and return it
-    return 'NEW_INSTANCE_ID'
 
-
-########### EC2_API.add_instance_to_target_group()
-def add_instance_to_target_group(instance_id, target_group_arn):
-    # Placeholder function to add an EC2 instance to the target group
-    # In a real-world scenario, you would use boto3 or AWS SDK to register the instance with the target group
-    print(f"Adding instance {instance_id} to the target group...")
-    # Code to add instance to target group
-    # Example: elbv2_client.register_targets(TargetGroupArn=target_group_arn, Targets=[{'Id': instance_id}])
-
-########### EC2_API.execute_ssh_commands()
-def install_dependencies(instance_id):
-    # Placeholder function to install dependencies on the newly created instance
-    print(f"Installing dependencies on instance {instance_id}...")
-    # Code to install dependencies
-    # Example: Use SSH to connect to the instance and execute commands to install dependencies
-
-
-########### EC2_API.upload_file()
-########### EC2_API.execute_remote_script()
-def upload_and_execute_flask_file(instance_id):
-    # Placeholder function to upload and execute the Flask file on the instance
-    print(f"Uploading and executing Flask file on instance {instance_id}...")
-    # Code to upload and execute Flask file
-    # Example: Use SSH to transfer files to the instance and execute them
 
 
 def count_healthy_instances(instance_status_dict):
@@ -236,69 +109,118 @@ def count_healthy_instances(instance_status_dict):
     return healthy_count
 
 
-def main():
 
 
-    new_instance_id = EC2_API.create_ec2_instance('Project4')  # Create new instances
+def add_instance_to_target():
+    new_instance_id = EC2_API.create_ec2_instance()  # Create new instances
     EC2_API.assign_iam_role_to_instance(new_instance_id, 'S3-Access')
     ssh = EC2_API.initialize_ssh_connection(new_instance_id)
     EC2_API.execute_ssh_commands(ssh)
-    EC2_API.add_instance_to_target_group(new_instance_id, 'arn:aws:elasticloadbalancing:eu-north-1:851725392781:targetgroup/test-img-proc-TG/cdfc847103e4fb62')
-    EC2_API.upload_file('D:/Distributed Computing/Project/Project source code/image_processing_flask.py', '/home/ubuntu/image_processing_script33.py', ssh)
-    EC2_API.execute_remote_script('/home/ubuntu/image_processing_script33.py', ssh)
-    
-    
-
-
-    # EC2_API.create_ec2_instance('Project')
-
-    # ssh = EC2_API.initialize_ssh_connection('i-02963630086cecad9')
-    # EC2_API.upload_file('D:/Distributed Computing/Project/Project source code/image_processing_flask.py', '/home/ubuntu/image_processing_script32.py', ssh)
-    # EC2_API.execute_remote_script('/home/ubuntu/image_processing_script32.py', ssh)
-    # print(get_instances_health('arn:aws:elasticloadbalancing:eu-north-1:851725392781:targetgroup/test-img-proc-TG/cdfc847103e4fb62'))
-    # print(get_number_of_instances_in_target_group('arn:aws:elasticloadbalancing:eu-north-1:851725392781:targetgroup/test-img-proc-TG/cdfc847103e4fb62'))
+    # EC2_API.modify_instance_metadata_options(new_instance_id)
+    EC2_API.add_instance_to_target_group(new_instance_id, TARGET_GROUP_ARN)
+    EC2_API.upload_file(IMAGE_PROCESSING_SCRIPT_PATH, REMOTE_SCRIPT_PATH, ssh)
+    EC2_API.execute_remote_script(REMOTE_SCRIPT_PATH, ssh)
 
 
 
-    # while True:
+
+
+def auto_scaling_and_Fault_tolerance():
+
+
+    while True:
         # Get monitoring metrics
+
         # request_count = get_request_count()
-        # healthy_instances = get_instances_health('arn:aws:elasticloadbalancing:eu-north-1:851725392781:targetgroup/test-img-proc-TG/cdfc847103e4fb62')
-        # existing_instances = get_number_of_instances_in_target_group('arn:aws:elasticloadbalancing:eu-north-1:851725392781:targetgroup/test-img-proc-TG/cdfc847103e4fb62')
+        healthy_instances = get_instances_health(TARGET_GROUP_ARN)
+        existing_instances = get_number_of_instances_in_target_group(TARGET_GROUP_ARN)
 
-        # # Check if scaling up is needed based on request count
-        # # if request_count > MAX_REQUESTS_BEFORE_SCALING:
-        # #     instances_needed = max(0, DESIRED_INSTANCE_COUNT - existing_instances)
-        # #     for _ in range(instances_needed):
-        # #         new_instance_id = create_instance()  # Create new instances
-        # #         install_dependencies(new_instance_id)  # Install dependencies
-        # #         upload_and_execute_flask_file(new_instance_id)  # Upload and execute Flask file
-        # #         # Add new instances to the target group
-        # #         add_instance_to_target_group(new_instance_id, 'YOUR_TARGET_GROUP_ARN')
+        healthy_instances_count = count_healthy_instances(healthy_instances)
+        print(f"healthy_instances_count = {healthy_instances_count}")
 
-        # # Check if scaling up is needed based on healthy instance count
 
-        # healthy_instances_count = count_healthy_instances(healthy_instances)
-        # print(healthy_instances_count)
+        ###################################################### scaling ##################################################################
+        # calculate the required instances based on request count
+        if request_count % 5 == 0:
+            Needed_Vms = request_count // REQUESTS_PER_INSTANCE
+        
+        else:
+            Needed_Vms = (request_count // REQUESTS_PER_INSTANCE) +1
+        
+        desired_instances = Needed_Vms - existing_instances
 
-        # # existing_instances
-        # if healthy_instances_count < existing_instances:
+        # Check if scaling up is needed based on the calculated required instances
+        print(f"desired_instances = {desired_instances}, Needed_Vms= {Needed_Vms} , existing_instances= {existing_instances} , request_count= {request_count} ")
+        if desired_instances < 0:
+            desired_instances = desired_instances * -1
 
-        #     instances_needed = max(0, existing_instances - healthy_instances_count)
-        #     print(instances_needed)
-        #     for _ in range(instances_needed):
+            for i in range(desired_instances):
+
+                if existing_instances <= DESIRED_INSTANCE_COUNT:
+                    break
+                EC2_API.terminate_ec2_instance(list(healthy_instances.keys())[i])
+                existing_instances = existing_instances -1
                 
-        #         new_instance_id = EC2_API.create_ec2_instance('Project')  # Create new instances
-        #         EC2_API.assign_iam_role_to_instance(new_instance_id, 'S3-Access')
-        #         EC2_API.add_instance_to_target_group(new_instance_id, 'arn:aws:elasticloadbalancing:eu-north-1:851725392781:targetgroup/test-img-proc-TG/cdfc847103e4fb62')
-        #         # install_dependencies(new_instance_id)  # Install dependencies
-        #         # upload_and_execute_flask_file(new_instance_id)  # Upload and execute Flask file
-        #         # # Add new instances to the target group
-        #         # add_instance_to_target_group(new_instance_id, 'YOUR_TARGET_GROUP_ARN')
+        elif (desired_instances + existing_instances) <= MAX_NUMBER_OF_INSTANCES:
+            for _ in range(desired_instances):
+                instance_scale_thread = threading.Thread(target=add_instance_to_target)
+                instance_scale_thread.start()
+        
+        
 
-        # time.sleep(60)  # Adjust the sleep duration as needed
+        ####################################################### Fault Tolerance #########################################################
+
+        # Check if scaling up is needed based on healthy instance count
+        # existing_instances instead of 2
+        if (healthy_instances_count < DESIRED_INSTANCE_COUNT) and (existing_instances < MAX_NUMBER_OF_INSTANCES):
+
+            instances_needed = max(0, DESIRED_INSTANCE_COUNT - healthy_instances_count)
+            print(f"instance needed in fault tolerance = {instances_needed}")
+            for _ in range(instances_needed):
+                instance_fault_thread = threading.Thread(target=add_instance_to_target)
+                instance_fault_thread.start()
+                
+                           
+                
+
+        time.sleep(400)  # wait until instances created, add to target group and become healthy
 
 
+
+def main():
+    global request_count
+    
+    ## run el awl el 2 vms ely 3ndk w khlehom healthy 
+    ## then test Scale_and_fault again
+    ## then test the modify IMDSv2 
+    ## then test sending requests to the load balancer
+    ## try to test the get_req_count
+    ## try to link the requests count with the request of the ALB file
+    ## link with gui
+
+    ## EC2_API.run_ec2_instance('i-01d25c4b7a43d1a81')
+    ## ssh = EC2_API.initialize_ssh_connection('i-01d25c4b7a43d1a81')
+    ## EC2_API.execute_remote_script(REMOTE_SCRIPT_PATH,ssh)
+
+    ## EC2_API.run_ec2_instance('i-0a13038954d21710f')
+    ## ssh = EC2_API.initialize_ssh_connection('i-0a13038954d21710f')
+    ## EC2_API.execute_remote_script(REMOTE_SCRIPT_PATH,ssh)
+
+    # print(get_instances_health(TARGET_GROUP_ARN))
+
+    Scale_and_fault_thread = threading.Thread(target=auto_scaling_and_Fault_tolerance)
+    Scale_and_fault_thread.start()
+
+    time.sleep(300)
+
+    request_count = 40
+
+    time.sleep(450)
+
+    request_count = 5
+    Scale_and_fault_thread.join()
+    
+    
 
 if __name__ == "__main__":
     main()

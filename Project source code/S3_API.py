@@ -15,7 +15,7 @@ def S3_create_bucket(name):
         bucket_name = name
 
         # Specify the location constraint for the bucket (if necessary)
-        location_constraint = {'LocationConstraint': 'eu-central-1'}
+        location_constraint = {'LocationConstraint': 'eu-central-1'} # stockholm eu-north-1
 
         # Create S3 bucket with the specified location constraint
         s3_client.create_bucket(Bucket=bucket_name, CreateBucketConfiguration=location_constraint)
