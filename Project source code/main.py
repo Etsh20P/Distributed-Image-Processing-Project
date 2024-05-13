@@ -127,6 +127,8 @@ def add_instance_to_target():
 
 def auto_scaling_and_Fault_tolerance():
 
+    Fault_Tolerance_flag = False
+    Auto_Scaling_flag = False
 
     while True:
         # Get monitoring metrics
@@ -151,9 +153,8 @@ def auto_scaling_and_Fault_tolerance():
 
         # Check if scaling up is needed based on the calculated required instances
         print(f"desired_instances = {desired_instances}, Needed_Vms= {Needed_Vms} , existing_instances= {existing_instances} , request_count= {request_count} ")
-        if desired_instances < 0:
+        if (desired_instances < 0) and (desired_instances != 0):
             desired_instances = desired_instances * -1
-
             for i in range(desired_instances):
 
                 if existing_instances <= DESIRED_INSTANCE_COUNT:
@@ -161,7 +162,8 @@ def auto_scaling_and_Fault_tolerance():
                 EC2_API.terminate_ec2_instance(list(healthy_instances.keys())[i])
                 existing_instances = existing_instances -1
                 
-        elif (desired_instances + existing_instances) <= MAX_NUMBER_OF_INSTANCES:
+        elif ((desired_instances + existing_instances) <= MAX_NUMBER_OF_INSTANCES) and (desired_instances != 0):
+            Auto_Scaling_flag = True
             for _ in range(desired_instances):
                 instance_scale_thread = threading.Thread(target=add_instance_to_target)
                 instance_scale_thread.start()
@@ -173,17 +175,26 @@ def auto_scaling_and_Fault_tolerance():
         # Check if scaling up is needed based on healthy instance count
         # existing_instances instead of 2
         if (healthy_instances_count < DESIRED_INSTANCE_COUNT) and (existing_instances < MAX_NUMBER_OF_INSTANCES):
-
+            
             instances_needed = max(0, DESIRED_INSTANCE_COUNT - healthy_instances_count)
+            if instances_needed != 0:
+                Fault_Tolerance_flag = True
             print(f"instance needed in fault tolerance = {instances_needed}")
             for _ in range(instances_needed):
+
                 instance_fault_thread = threading.Thread(target=add_instance_to_target)
                 instance_fault_thread.start()
                 
                            
                 
-
-        time.sleep(400)  # wait until instances created, add to target group and become healthy
+        if Fault_Tolerance_flag or Auto_Scaling_flag:
+            Fault_Tolerance_flag = Auto_Scaling_flag = False
+            time.sleep(400)  # wait until instances created, add to target group and become healthy
+        
+        else:
+            request_count = 0
+            time.sleep(60)
+        
 
 
 
