@@ -8,7 +8,7 @@ import json
 
 async def send_image_processing_request(image_path, operation, output_name, s3_bucket):
     # Load balancer URL
-    load_balancer_url = 'http://Img-Proc-Frank-ALB-120936481.eu-central-1.elb.amazonaws.com/process_image' 
+    load_balancer_url = 'http://Image-Proc-ALB-1961580936.eu-central-1.elb.amazonaws.com/process_image' 
 
     # Read the image file
     with open(image_path, 'rb') as image_file:
@@ -29,7 +29,7 @@ async def send_image_processing_request(image_path, operation, output_name, s3_b
                 response_json = await response.json()  # Parse JSON response
                 download_link = response_json.get('download_link')  # Extract download link
                 instance_id = response_json.get('Instance_ID')  # Extract instance id
-                print(response_json)
+
                 if download_link:
                     print(f"Download link: {download_link}")
                 else:
@@ -40,49 +40,51 @@ async def send_image_processing_request(image_path, operation, output_name, s3_b
                 else:
                     print("Failed to get instance id from the response.")
                 
+                return download_link, instance_id
+                
                 
             else:
                 error_message = await response.text()
                 print(f"Failed to send image processing request to the load balancer. Error: {error_message}")
 
 
-async def main():
-    await send_image_processing_request(
-        image_path='C:/Users/oem/Downloads/store.png',
-        operation='grayscale',
-        output_name='grayScaled.png',
-        s3_bucket='dist-frank-proj'
-    )
+# async def main():
+#     await send_image_processing_request(
+#         image_path='C:/Users/oem/Downloads/store.png',
+#         operation='grayscale',
+#         output_name='grayScaled.png',
+#         s3_bucket='dist-frank-proj'
+#     )
 
-    # await send_image_processing_request(
-    #     image_path='C:/Users/oem/Downloads/sudoku.png',
-    #     operation='blur',
-    #     output_name='blured.png',
-    #     s3_bucket='dist-frank-proj'
-    # )
+# #     # await send_image_processing_request(
+# #     #     image_path='C:/Users/oem/Downloads/sudoku.png',
+# #     #     operation='blur',
+# #     #     output_name='blured.png',
+# #     #     s3_bucket='dist-frank-proj'
+# #     # )
     
-    # await send_image_processing_request(
-    #     image_path='C:/Users/oem/Downloads/sudoku.png',
-    #     operation='line_detection',
-    #     output_name='LineDetected.png',
-    #     s3_bucket='dist-frank-proj'
-    # )
+# #     # await send_image_processing_request(
+# #     #     image_path='C:/Users/oem/Downloads/sudoku.png',
+# #     #     operation='line_detection',
+# #     #     output_name='LineDetected.png',
+# #     #     s3_bucket='dist-frank-proj'
+# #     # )
 
-    # await send_image_processing_request(
-    #     image_path='C:/Users/oem/Downloads/sudoku.png',
-    #     operation='frame_contour_detection',
-    #     output_name='frameDetected.png',
-    #     s3_bucket='dist-frank-proj'
-    # )
+# #     # await send_image_processing_request(
+# #     #     image_path='C:/Users/oem/Downloads/sudoku.png',
+# #     #     operation='frame_contour_detection',
+# #     #     output_name='frameDetected.png',
+# #     #     s3_bucket='dist-frank-proj'
+# #     # )
     
-    # await send_image_processing_request(
-    #     image_path='C:/Users/oem/Downloads/sudoku.png',
-    #     operation='morphological_operations',
-    #     output_name='morphological.png',
-    #     s3_bucket='dist-frank-proj'
-    # )
+# #     # await send_image_processing_request(
+# #     #     image_path='C:/Users/oem/Downloads/sudoku.png',
+# #     #     operation='morphological_operations',
+# #     #     output_name='morphological.png',
+# #     #     s3_bucket='dist-frank-proj'
+# #     # )
 
     
 
-# Run the asynchronous function
-asyncio.run(main())
+# # Run the asynchronous function
+# asyncio.run(main())

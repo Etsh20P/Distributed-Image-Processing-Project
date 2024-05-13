@@ -270,8 +270,7 @@ def run_ec2_instance(instance_id):
         instance = ec2.Instance(instance_id)
         instance.start()
         instance.wait_until_running() #######
-        waiter = ec2_client.get_waiter('instance_status_ok') ########
-        waiter.wait(InstanceIds=[instance.id]) ########
+        time.sleep(30)
         print(f"Instance {instance_id} started successfully.")
     except Exception as e:
         print(f"Error starting instance {instance_id}: {str(e)}")
