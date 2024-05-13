@@ -12,7 +12,7 @@ import asyncio
 customtkinter.set_appearance_mode("light")  # Modes: system (default), light, dark
 customtkinter.set_default_color_theme("dark-blue")  # Themes: blue (default), dark-blue, green
 
-app = customtkinter.CTk()  # create CTk window like you do with the Tk window
+app = customtkinter.CTk() 
 app.title('Image Pro')
 screen_width = app.winfo_screenwidth()
 screen_height = app.winfo_screenheight()
@@ -63,17 +63,36 @@ def display_multiple_images(filenames):
     remaining_count = len(filenames) - 1
     remaining_label.configure(text=f"+{remaining_count}",font=remaining_label_font)
 
+def show_popup(message):
+  # Create a popup window
+  popup = customtkinter.Toplevel()
+  popup.title("This is a Pop-up Window")
+  popup.geometry("300x150")  # Set size
+
+  # Label within the popup
+  label = customtkinter.CTkLabel(popup, text=message)
+  label.pack()
+
+  # Button to close the popup
+  close_button = customtkinter.CTkButton(popup, text="Close", command=popup.destroy)
+  close_button.pack()
+
 async def Apply_operation(filenames,operation):
+    if filenames == 0:
+       show_popup('Please choose an image to upload.')
+       return
+    elif operation == '':
+       show_popup("Please choose an operation.")
+       return
     s3_bucket='dist-frank-proj'
     for file in filenames:
         image_url = urlparse(file)                   
         image_name = operation + '_' + os.path.basename(image_url.path)  
         download_link , instance_id = await ALB_API.send_image_processing_request(file, ALB_operations[operation], image_name, s3_bucket)
-        # print(file)
-        # print(ALB_operations[operation])
-        # print(image_name)
         recent_images[image_name]= download_link
         add_recent_images(image_name.split('_')[1], operation, download_link)
+    filenames=()
+    
 
 
 frame1 = customtkinter.CTkFrame(master=app ,width=300,height=600,border_width=1,corner_radius=15,fg_color='#f2f2f2')
