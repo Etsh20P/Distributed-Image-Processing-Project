@@ -3,6 +3,7 @@ import customtkinter
 from PIL import Image
 import os
 from urllib.parse import urlparse
+import webbrowser
 # from ALB_API import send_image_processing_request
 
 import ALB_API
@@ -16,8 +17,8 @@ app.title('Image Pro')
 screen_width = app.winfo_screenwidth()
 screen_height = app.winfo_screenheight()
 app.geometry(f"{screen_width}x{screen_height}")
-upload_icon = customtkinter.CTkImage(Image.open('D:/Distributed Computing/Project/Project source code/GUI test/upload.png'), size=(35,35))
-app_image = customtkinter.CTkImage(Image.open('D:/Distributed Computing/Project/Project source code/GUI test/setting_1.png'), size=(70,70))
+upload_icon = customtkinter.CTkImage(Image.open('GUI test/upload.png'), size=(35,35))
+app_image = customtkinter.CTkImage(Image.open('GUI test/setting_1.png'), size=(70,70))
 app_image_label = customtkinter.CTkLabel(master=app,image=app_image, text='')
 app_image_label.place(x=80,y=10)
 my_font = customtkinter.CTkFont(family='Helvetica',size=16, weight="bold")
@@ -26,7 +27,7 @@ imagePro_label.place(x=160,y=40)
 
 ALB_operations = {'Color Inversion':'color_inversion','Grayscale':'grayscale', 'Blur':'blur','Edge Detection':'edge_detection', 'Thresholding':'thresholding','Line Detection':'line_detection', 'Frame Contour Detection':'frame_contour_detection', 'Morphological operations':'morphological_operations'}
 filenames=()
-
+recent_images = {}
 ####################### RIGHT FRAME #########################
 def upload_images():
     global filenames
@@ -66,11 +67,13 @@ async def Apply_operation(filenames,operation):
     s3_bucket='dist-frank-proj'
     for file in filenames:
         image_url = urlparse(file)                   
-        image_name = ALB_operations[operation]+ '_' + os.path.basename(image_url.path)  
-        await ALB_API.send_image_processing_request(file, ALB_operations[operation], image_name, s3_bucket)
+        image_name = operation + '_' + os.path.basename(image_url.path)  
+        download_link , instance_id = await ALB_API.send_image_processing_request(file, ALB_operations[operation], image_name, s3_bucket)
         # print(file)
         # print(ALB_operations[operation])
         # print(image_name)
+        recent_images[image_name]= download_link
+        add_recent_images(image_name.split('_')[1], operation, download_link)
 
 
 frame1 = customtkinter.CTkFrame(master=app ,width=300,height=600,border_width=1,corner_radius=15,fg_color='#f2f2f2')
@@ -131,7 +134,7 @@ for i in range (10):
   # frame_state3 = customtkinter.CTkFrame(master=machines_frame ,width=150,height=150,fg_color="#f2f2f2")
   # frame_state3.pack(side='right',padx=25)
   # frame_state3.pack_propagate(False)
-  cloud_icon1 = customtkinter.CTkImage(Image.open('D:/Distributed Computing/Project/Project source code/GUI test/cloud-server.png'), size=(100,100))
+  cloud_icon1 = customtkinter.CTkImage(Image.open('GUI test/cloud-server.png'), size=(100,100))
   cloud_label1 = customtkinter.CTkLabel(master=frame_state1,image=cloud_icon1, text='')
   cloud_label1.pack()
   state_label1 = customtkinter.CTkLabel(master=frame_state1, text='VM Name\nHealth: Status')
@@ -177,19 +180,19 @@ receent_label.place(x=250,y=380)
 recent_frame= customtkinter.CTkScrollableFrame(master=app, width=630,height=200,border_width=1,corner_radius=15, fg_color='#f2f2f2')
 recent_frame.place(x=245,y=420)
 
-gallery_image = customtkinter.CTkImage(Image.open('D:/Distributed Computing/Project/Project source code/GUI test/image-gallery.png'), size=(32,32))
-download_image = customtkinter.CTkImage(Image.open('D:/Distributed Computing/Project/Project source code/GUI test/downloading.png'), size=(32,32))
+gallery_image = customtkinter.CTkImage(Image.open('GUI test/image-gallery.png'), size=(32,32))
+download_image = customtkinter.CTkImage(Image.open('GUI test/downloading.png'), size=(32,32))
 
-for i in range (10):
+def add_recent_images(image_name, operation, download_link):
   download_frame= customtkinter.CTkFrame(master=recent_frame ,width=590,height=50,corner_radius=15,border_width=1,fg_color='#f2f2f2')
   download_frame.pack(expand=True,pady=10)
   gallery_label = customtkinter.CTkLabel(master=download_frame,image=gallery_image, text="")
   gallery_label.place(x=7,y=7)
-  imagenumber_label = customtkinter.CTkLabel(master=download_frame, text="Image 5")
+  imagenumber_label = customtkinter.CTkLabel(master=download_frame, text=image_name)
   imagenumber_label.place(x=50,y=10)
-  operation_done_label = customtkinter.CTkLabel(master=download_frame, text="Operation Done")
+  operation_done_label = customtkinter.CTkLabel(master=download_frame, text=operation)
   operation_done_label.place(x=250,y=10)
-  download_button = customtkinter.CTkButton(master = download_frame,text='',image=download_image,width=5,height=32,fg_color='#f2f2f2',border_spacing=0,hover=False)
+  download_button = customtkinter.CTkButton(master = download_frame,text='',image=download_image,width=5,height=32,fg_color='#f2f2f2',border_spacing=0,hover=False , command=lambda: webbrowser.open(download_link))
   download_button.place(x= 530, y = 7)
 ######################## END OF FRAME THAT HOLDS THE RECENT IMAGES ##########################
   
