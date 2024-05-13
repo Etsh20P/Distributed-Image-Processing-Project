@@ -1,6 +1,13 @@
 from tkinter import PhotoImage, filedialog
 import customtkinter
 from PIL import Image
+import os
+from urllib.parse import urlparse
+# from ALB_API import send_image_processing_request
+import sys
+sys.path.append('ALB_API.py')
+import ALB_API
+import asyncio
 
 customtkinter.set_appearance_mode("light")  # Modes: system (default), light, dark
 customtkinter.set_default_color_theme("dark-blue")  # Themes: blue (default), dark-blue, green
@@ -18,9 +25,12 @@ my_font = customtkinter.CTkFont(family='Helvetica',size=16, weight="bold")
 imagePro_label = customtkinter.CTkLabel(master=app, text='Image Pro', font=my_font)
 imagePro_label.place(x=160,y=40)
 
+ALB_operations = {'Color Inversion':'color_inversion','Grayscale':'grayscale', 'Blur':'blur','Edge Detection':'edge_detection', 'Thresholding':'thresholding','Line Detection':'line_detection', 'Frame Contour Detection':'frame_contour_detection', 'Morphological operations':'morphological_operations'}
+filenames=()
 
 ####################### RIGHT FRAME #########################
 def upload_images():
+    global filenames
     filenames = filedialog.askopenfilenames(multiple=True)
     if len(filenames) == 1:
         display_single_image(filenames[0])
@@ -40,7 +50,6 @@ def upload_images():
 def display_single_image(filename):
   # Load the image and resize if needed
   image = customtkinter.CTkImage(Image.open(filename), size=(230,230))
-  
   # Display image in the frame
   upload_label.configure(image=image,text='')
   upload_label.image = image  # Keep a reference to avoid garbage collection
@@ -51,10 +60,18 @@ def display_multiple_images(filenames):
 
     upload_label.configure(image=image,text='')
     upload_label.image = image
-
     remaining_count = len(filenames) - 1
     remaining_label.configure(text=f"+{remaining_count}",font=remaining_label_font)
 
+async def Apply_operation(filenames,operation):
+    s3_bucket='dist-frank-proj'
+    for file in filenames:
+        image_url = urlparse(file)                   
+        image_name = ALB_operations[operation]+ '_' + os.path.basename(image_url.path)  
+        await ALB_API.send_image_processing_request(file, ALB_operations[operation], image_name, s3_bucket)
+        # print(file)
+        # print(ALB_operations[operation])
+        # print(image_name)
 
 
 frame1 = customtkinter.CTkFrame(master=app ,width=300,height=600,border_width=1,corner_radius=15,fg_color='#f2f2f2')
@@ -68,7 +85,7 @@ upload_label.pack(pady=10)
 remaining_label = customtkinter.CTkLabel(master=uplaod_frame,text='')
 remaining_label_font= customtkinter.CTkFont(family='Helvetica', weight='bold',size=14)
 # remaining_label.pack()
-inner_frame2 = customtkinter.CTkFrame(master = frame1, width=250, height=250,fg_color='#76BADC',corner_radius=15)
+inner_frame2 = customtkinter.CTkFrame(master = frame1, width=250, height=150,fg_color='#76BADC',corner_radius=15)
 
 # **Centering the inner frames:**
 # Use `pack` with `expand=True` for both frames
@@ -78,17 +95,19 @@ inner_frame2.pack_propagate(False)
 
 operation_label = customtkinter.CTkLabel(master=inner_frame2, text='Choose Operation')
 operation_label.pack(anchor='nw',padx=5, pady=5)
+operation_values = ['Color Inversion','Grayscale', 'Blur','Edge Detection', 'Thresholding','Line Detection', 'Frame Contour Detection', 'Morphological operations']
+operations = customtkinter.CTkComboBox(master =inner_frame2, width = 200, height=35, values=operation_values,corner_radius=15 )
+operations.pack(expand = True)
+# inversion_button = customtkinter.CTkButton(master=inner_frame2,text='Color Inversion',width=200,height=35,corner_radius=20,fg_color='#134C9F')
+# inversion_button.pack(expand=True)
 
-inversion_button = customtkinter.CTkButton(master=inner_frame2,text='Color Inversion',width=200,height=35,corner_radius=20,fg_color='#134C9F')
-inversion_button.pack(expand=True)
-
-operatin2_button = customtkinter.CTkButton(master=inner_frame2,text='Operation 2',width=200,height=35,corner_radius=20,fg_color='#134C9F')
-operatin3_button = customtkinter.CTkButton(master=inner_frame2,text='Operation 3',width=200,height=35,corner_radius=20,fg_color='#134C9F')
-operatin4_button = customtkinter.CTkButton(master=inner_frame2,text='Operation 4',width=200,height=35,corner_radius=20,fg_color='#134C9F')
-Apply_button = customtkinter.CTkButton(master=inner_frame2,text='Apply',width=200,height=35,corner_radius=20,fg_color='#2E3031')
-operatin2_button.pack(expand=True)
-operatin3_button.pack(expand=True)
-operatin4_button.pack(expand=True)
+# operatin2_button = customtkinter.CTkButton(master=inner_frame2,text='Operation 2',width=200,height=35,corner_radius=20,fg_color='#134C9F')
+# operatin3_button = customtkinter.CTkButton(master=inner_frame2,text='Operation 3',width=200,height=35,corner_radius=20,fg_color='#134C9F')
+# operatin4_button = customtkinter.CTkButton(master=inner_frame2,text='Operation 4',width=200,height=35,corner_radius=20,fg_color='#134C9F')
+Apply_button = customtkinter.CTkButton(master=inner_frame2,text='Apply',width=200,height=35,corner_radius=20,fg_color='#2E3031', command=lambda: Apply_operation(filenames,operations.get()))
+# operatin2_button.pack(expand=True)
+# operatin3_button.pack(expand=True)
+# operatin4_button.pack(expand=True)
 Apply_button.pack(expand=True)
 
 # frame2 = customtkinter.CTkFrame(master=app ,width=900,height=600,border_width=1,corner_radius=15)
