@@ -5,7 +5,8 @@ import os
 from urllib.parse import urlparse
 import webbrowser
 # from ALB_API import send_image_processing_request
-
+import time
+import main_operations
 import ALB_API
 import asyncio
 
@@ -25,6 +26,7 @@ my_font = customtkinter.CTkFont(family='Helvetica',size=16, weight="bold")
 imagePro_label = customtkinter.CTkLabel(master=app, text='Image Pro', font=my_font)
 imagePro_label.place(x=160,y=40)
 
+TARGET_GROUP_ARN ='arn:aws:elasticloadbalancing:eu-central-1:851725392781:targetgroup/Image-Processing-Frank-TG/4594d70e60686eda'
 ALB_operations = {'Color Inversion':'color_inversion','Grayscale':'grayscale', 'Blur':'blur','Edge Detection':'edge_detection', 'Thresholding':'thresholding','Line Detection':'line_detection', 'Frame Contour Detection':'frame_contour_detection', 'Morphological operations':'morphological_operations'}
 filenames=()
 recent_images = {}
@@ -65,6 +67,7 @@ def display_multiple_images(filenames):
 
 async def Apply_operation(filenames,operation):
     s3_bucket='dist-frank-proj'
+
     for file in filenames:
         image_url = urlparse(file)                   
         image_name = operation + '_' + os.path.basename(image_url.path)  
@@ -74,6 +77,11 @@ async def Apply_operation(filenames,operation):
         # print(image_name)
         recent_images[image_name]= download_link
         add_recent_images(image_name.split('_')[1], operation, download_link)
+
+    uplaod_frame.pack_forget()
+    inner_frame2.pack_forget()
+    upload_btn.pack(expand=True)
+    inner_frame2.pack(expand=True)
 
 
 frame1 = customtkinter.CTkFrame(master=app ,width=300,height=600,border_width=1,corner_radius=15,fg_color='#f2f2f2')
@@ -98,7 +106,7 @@ inner_frame2.pack_propagate(False)
 operation_label = customtkinter.CTkLabel(master=inner_frame2, text='Choose Operation')
 operation_label.pack(anchor='nw',padx=5, pady=5)
 operation_values = ['Color Inversion','Grayscale', 'Blur','Edge Detection', 'Thresholding','Line Detection', 'Frame Contour Detection', 'Morphological operations']
-operations = customtkinter.CTkComboBox(master =inner_frame2, width = 200, height=35, values=operation_values,corner_radius=15 )
+operations = customtkinter.CTkComboBox(master =inner_frame2, width = 200, height=35, values=operation_values,corner_radius=15, state='readonly' )
 operations.pack(expand = True)
 # inversion_button = customtkinter.CTkButton(master=inner_frame2,text='Color Inversion',width=200,height=35,corner_radius=20,fg_color='#134C9F')
 # inversion_button.pack(expand=True)
@@ -196,4 +204,20 @@ def add_recent_images(image_name, operation, download_link):
   download_button.place(x= 530, y = 7)
 ######################## END OF FRAME THAT HOLDS THE RECENT IMAGES ##########################
   
+
+
+
+
+
+def update_health_dictionary():
+
+    global global_all_instances_health
+
+    while True:
+    
+        global_all_instances_health = main_operations.get_instances_health(TARGET_GROUP_ARN)
+        #GUI update status and machines
+        time.sleep(30)
+
+        
 app.mainloop()
