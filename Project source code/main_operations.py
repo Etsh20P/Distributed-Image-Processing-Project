@@ -116,10 +116,10 @@ def count_healthy_instances(instance_status_dict):
 def add_instance_to_target():
     new_instance_id = EC2_API.create_ec2_instance()  # Create new instances
     EC2_API.assign_iam_role_to_instance(new_instance_id, 'S3-Access')
+    EC2_API.add_instance_to_target_group(new_instance_id, TARGET_GROUP_ARN)
     ssh = EC2_API.initialize_ssh_connection(new_instance_id)
     EC2_API.execute_ssh_commands(ssh)
     EC2_API.modify_instance_metadata_options(new_instance_id)
-    EC2_API.add_instance_to_target_group(new_instance_id, TARGET_GROUP_ARN)
     EC2_API.upload_file(IMAGE_PROCESSING_SCRIPT_PATH, REMOTE_SCRIPT_PATH, ssh)
     EC2_API.execute_remote_script(REMOTE_SCRIPT_PATH, ssh)
 
@@ -191,7 +191,9 @@ def auto_scaling_and_Fault_tolerance():
             if (desired_instances + existing_instances_count) >= MAX_NUMBER_OF_INSTANCES:
                 desired_instances = MAX_NUMBER_OF_INSTANCES - existing_instances_count
 
-            Auto_Scaling_flag = True
+            if desired_instances != 0:
+                Auto_Scaling_flag = True
+
             for _ in range(desired_instances):
                 instance_scale_thread = threading.Thread(target=add_instance_to_target)
                 instance_scale_thread.start()
@@ -239,15 +241,15 @@ def auto_scaling_and_Fault_tolerance():
             time.sleep(60)
         
 
-def update_health_dictionary():
+# def update_health_dictionary():
 
-    global global_all_instances_health
+#     global global_all_instances_health
 
-    while True:
+#     while True:
     
-        global_all_instances_health = get_instances_health(TARGET_GROUP_ARN)
-        #GUI update status and machines
-        time.sleep(30)
+#         global_all_instances_health = get_instances_health(TARGET_GROUP_ARN)
+#         #GUI update status and machines
+#         time.sleep(30)
 
 
 # def main():
@@ -259,13 +261,13 @@ def update_health_dictionary():
     ## try to link the requests count with the request of the ALB file
     ## link with gui
 
-    # EC2_API.run_ec2_instance('i-043689d8f63d97b64')
-    # ssh = EC2_API.initialize_ssh_connection('i-043689d8f63d97b64')
-    # EC2_API.execute_remote_script(REMOTE_SCRIPT_PATH,ssh)
+# EC2_API.run_ec2_instance('i-043689d8f63d97b64')
+# ssh = EC2_API.initialize_ssh_connection('i-043689d8f63d97b64')
+# EC2_API.execute_remote_script(REMOTE_SCRIPT_PATH,ssh)
 
-    # EC2_API.run_ec2_instance('i-03667afc59f078d52')
-    # ssh = EC2_API.initialize_ssh_connection('i-03667afc59f078d52')
-    # EC2_API.execute_remote_script(REMOTE_SCRIPT_PATH,ssh)
+# EC2_API.run_ec2_instance('i-03667afc59f078d52')
+# ssh = EC2_API.initialize_ssh_connection('i-03667afc59f078d52')
+# EC2_API.execute_remote_script(REMOTE_SCRIPT_PATH,ssh)
 
     # print(get_instances_health(TARGET_GROUP_ARN))
 

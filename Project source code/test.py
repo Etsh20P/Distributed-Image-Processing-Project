@@ -6,10 +6,27 @@ from urllib.parse import urlparse
 import webbrowser
 # from ALB_API import send_image_processing_request
 import time
-import main_operations
+from main_operations import get_unhealthy_instance_ids, add_instance_to_target, count_healthy_instances, get_number_of_instances_in_target_group, get_instances_health
+import EC2_API
 import ALB_API
 import asyncio
 import threading
+
+
+# Define scaling parameters
+MAX_REQUESTS_BEFORE_SCALING = 5
+MAX_NUMBER_OF_INSTANCES = 8
+DESIRED_INSTANCE_COUNT = 2
+TARGET_GROUP_ARN ='arn:aws:elasticloadbalancing:eu-central-1:851725392781:targetgroup/Image-Processing-Frank-TG/4594d70e60686eda'
+IMAGE_PROCESSING_SCRIPT_PATH = 'D:/Distributed Computing/Project/Project source code/image_processing_flask.py'
+REMOTE_SCRIPT_PATH = '/home/ubuntu/image_processing_flask_script.py'
+
+REQUESTS_PER_INSTANCE = 3
+request_count = 0
+
+
+
+
 
 customtkinter.set_appearance_mode("light")  # Modes: system (default), light, dark
 customtkinter.set_default_color_theme("dark-blue")  # Themes: blue (default), dark-blue, green
@@ -27,7 +44,7 @@ my_font = customtkinter.CTkFont(family='Helvetica',size=16, weight="bold")
 imagePro_label = customtkinter.CTkLabel(master=app, text='Image Pro', font=my_font)
 imagePro_label.place(x=160,y=40)
 
-TARGET_GROUP_ARN ='arn:aws:elasticloadbalancing:eu-central-1:851725392781:targetgroup/Image-Processing-Frank-TG/4594d70e60686eda'
+
 ALB_operations = {'Color Inversion':'color_inversion','Grayscale':'grayscale', 'Blur':'blur','Edge Detection':'edge_detection', 'Thresholding':'thresholding','Line Detection':'line_detection', 'Frame Contour Detection':'frame_contour_detection', 'Morphological operations':'morphological_operations'}
 filenames=()
 recent_images = {}
@@ -82,6 +99,8 @@ def show_popup(message):
 
 async def Apply_operation(filenames,operation):
     
+    global request_count
+    
     if filenames == 0:
       show_popup('Please choose an image to upload.')
       return
@@ -98,6 +117,9 @@ async def Apply_operation(filenames,operation):
         download_link , instance_id = await ALB_API.send_image_processing_request(file, ALB_operations[operation], image_name, s3_bucket)
         recent_images[image_name]= download_link
         add_recent_images(image_name.split('_')[1], operation, download_link)
+        request_count +=1
+    
+    print(request_count)
     filenames=()
     
 
@@ -152,7 +174,7 @@ Apply_button.pack(expand=True)
 
 
 ########################## FRAME THAT HOLDS THE MACHINES STATUES ###########################
-machines_frame = customtkinter.CTkScrollableFrame(master=app ,width=630,height=150,fg_color="#f2f2f2",border_width=1,corner_radius=15,orientation='horizontal')
+machines_frame = customtkinter.CTkScrollableFrame(master=app ,width=630,height=175,fg_color="#f2f2f2",border_width=1,corner_radius=15,orientation='horizontal')
 machines_frame.place(x=245, y=100)
 
 
@@ -248,10 +270,20 @@ def update_health_dictionary():
 
     while True:
     
-        global_all_instances_health = main_operations.get_instances_health(TARGET_GROUP_ARN)
+        global_all_instances_health = get_instances_health(TARGET_GROUP_ARN)
         print(global_all_instances_health)
 
         if are_not_dicts_equal(old_dict_instances,global_all_instances_health):
+          i = 1
+
+          for widget in machines_frame.winfo_children():
+
+            try:
+                widget.destroy()
+            except Exception as e:
+                print("error")
+                print(e)
+
           for instance_id, health_status in global_all_instances_health.items():
 
             frame_state1 = customtkinter.CTkFrame(master=machines_frame ,width=150,height=150,fg_color="#f2f2f2")
@@ -261,17 +293,15 @@ def update_health_dictionary():
             cloud_label1.pack()
 
             # Create labels for instance ID and health status separately
-            instance_id_label = customtkinter.CTkLabel(master=frame_state1, text=f'{instance_id}\nStatus:')
-            health_status_label = customtkinter.CTkLabel(master=frame_state1, text=f'{health_status}')
+            instance_name = customtkinter.CTkLabel(master=frame_state1, text=f'VM {i}')
+            instance_id_label = customtkinter.CTkLabel(master=frame_state1, text=f'{instance_id}')
+            health_status_label = customtkinter.CTkLabel(master=frame_state1, text=f'Status: {health_status}')
 
-            # Set the foreground color based on the health status
-            if health_status == 'healthy':
-              health_status_label.config(fg='green')
-            elif health_status == 'unhealthy':
-              health_status_label.config(fg='red')
             
+            instance_name.pack()
             instance_id_label.pack()
             health_status_label.pack()
+            i +=1
 
             # if health_status == 'healthy':
             #   state_label1 = customtkinter.CTkLabel(master=frame_state1, text=f'{instance_id}\nStatus: {health_status}')
@@ -281,9 +311,121 @@ def update_health_dictionary():
 
         old_dict_instances = global_all_instances_health
         #GUI update status and machines
-        time.sleep(30)
+        time.sleep(15)
 
-thread = threading.Thread(target=update_health_dictionary)
-thread.start()
+
+
+
+
+def auto_scaling_and_Fault_tolerance():
+
+    global request_count
+    Fault_Tolerance_flag = False
+    Auto_Scaling_flag = False
+    
+    while True:
+        # Get monitoring metrics
+
+        # request_count = get_request_count()
+        all_instances_health = get_instances_health(TARGET_GROUP_ARN)
+        existing_instances_count = get_number_of_instances_in_target_group(TARGET_GROUP_ARN)
+
+        healthy_instances_count = count_healthy_instances(all_instances_health)
+        print(f"healthy_instances_count = {healthy_instances_count}")
+
+        # each interation check on unhealthy and remove them
+        unhealthy_instances = get_unhealthy_instance_ids(all_instances_health)
+
+        for instance_id in unhealthy_instances:
+            print(f"Terminating instance {instance_id}...")
+            EC2_API.terminate_ec2_instance(instance_id)
+            print(f"Instance {instance_id} terminated successfully.")
+            all_instances_health.pop(instance_id, None)
+            print("Terminated instances removed from instances_health dictionary.")
+            existing_instances_count -= 1
+            
+        ###################################################### scaling ##################################################################
+        # calculate the required instances based on request count
+        if request_count % 3 == 0:
+            Needed_Vms = request_count // REQUESTS_PER_INSTANCE
+        
+        else:
+            Needed_Vms = (request_count // REQUESTS_PER_INSTANCE) +1
+        
+        desired_instances = Needed_Vms - existing_instances_count
+
+        # Check if scaling up is needed based on the calculated required instances
+        print(f"desired_instances = {desired_instances}, Needed_Vms= {Needed_Vms} , existing_instances= {existing_instances_count} , request_count= {request_count} ")
+        if (desired_instances < 0) and (desired_instances != 0):
+            desired_instances *= -1
+            for i in range(desired_instances):
+
+                if existing_instances_count <= DESIRED_INSTANCE_COUNT:
+                    break
+                EC2_API.terminate_ec2_instance(list(all_instances_health.keys())[i])
+                existing_instances_count -= 1
+                
+        elif desired_instances != 0:
+
+            if (desired_instances + existing_instances_count) >= MAX_NUMBER_OF_INSTANCES:
+                desired_instances = MAX_NUMBER_OF_INSTANCES - existing_instances_count
+
+            Auto_Scaling_flag = True
+            for _ in range(desired_instances):
+                instance_scale_thread = threading.Thread(target=add_instance_to_target)
+                instance_scale_thread.start()
+        
+        
+
+        ####################################################### Fault Tolerance #########################################################
+
+        # Check if scaling up is needed based on healthy instance count
+        # DESIRED_INSTANCE_COUNT instead of 2
+        if not Auto_Scaling_flag:
+            if (healthy_instances_count < DESIRED_INSTANCE_COUNT) and (existing_instances_count < MAX_NUMBER_OF_INSTANCES):
+                
+                instances_needed = max(0, DESIRED_INSTANCE_COUNT - healthy_instances_count)
+                if instances_needed != 0:
+                    Fault_Tolerance_flag = True
+
+                print(f"instance needed in fault tolerance = {instances_needed}")
+                for _ in range(instances_needed):
+
+                    instance_fault_thread = threading.Thread(target=add_instance_to_target)
+                    instance_fault_thread.start()
+                    
+
+            elif (healthy_instances_count < existing_instances_count) and (existing_instances_count < MAX_NUMBER_OF_INSTANCES):   
+                instances_needed = max(0, existing_instances_count - healthy_instances_count)
+                if instances_needed != 0:
+                    Fault_Tolerance_flag = True
+
+                print(f"instance needed in fault tolerance = {instances_needed}")
+                for _ in range(instances_needed):
+
+                    instance_fault_thread = threading.Thread(target=add_instance_to_target)
+                    instance_fault_thread.start()
+
+
+                
+        if Fault_Tolerance_flag or Auto_Scaling_flag:
+            request_count = 0
+            Fault_Tolerance_flag = Auto_Scaling_flag = False
+            time.sleep(400)  # wait until instances created, add to target group and become healthy
+        
+        else:
+            request_count = 0
+            time.sleep(60)
+
+
+
+
+
+
+Health_thread = threading.Thread(target=update_health_dictionary)
+Health_thread.start()
+
+Scale_and_fault_thread = threading.Thread(target=auto_scaling_and_Fault_tolerance)
+Scale_and_fault_thread.start()
+
 app.mainloop()
-thread.join()
