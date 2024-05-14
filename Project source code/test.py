@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 import webbrowser
 # from ALB_API import send_image_processing_request
 import time
-import main_operations
+# import main_operations
 import ALB_API
 import asyncio
 import threading
@@ -29,12 +29,13 @@ imagePro_label.place(x=160,y=40)
 
 TARGET_GROUP_ARN ='arn:aws:elasticloadbalancing:eu-central-1:851725392781:targetgroup/Image-Processing-Frank-TG/4594d70e60686eda'
 ALB_operations = {'Color Inversion':'color_inversion','Grayscale':'grayscale', 'Blur':'blur','Edge Detection':'edge_detection', 'Thresholding':'thresholding','Line Detection':'line_detection', 'Frame Contour Detection':'frame_contour_detection', 'Morphological operations':'morphological_operations'}
-filenames=()
+filenames=[]
 recent_images = {}
 ####################### RIGHT FRAME #########################
 def upload_images():
     global filenames
-    filenames = filedialog.askopenfilenames(multiple=True)
+    filenames = list(filedialog.askopenfilenames(multiple=True))
+    print(filenames)
     if len(filenames) == 1:
         display_single_image(filenames[0])
         uplaod_frame.pack(expand=True)
@@ -68,21 +69,22 @@ def display_multiple_images(filenames):
 
 def show_popup(message):
   # Create a popup window
-  popup = customtkinter.CTkToplevel()
-  popup.title("This is a Pop-up Window")
-  popup.geometry("300x150")  # Set size
+  popup = customtkinter.CTkToplevel(master=app)
+  popup.attributes('-topmost', True)
+  popup.title("Error!")
+  popup.geometry('300x150+500+300')  # Set size
 
   # Label within the popup
   label = customtkinter.CTkLabel(popup, text=message)
-  label.pack()
+  label.place(relx=0.5,rely=0.3, anchor=customtkinter.CENTER)
 
   # Button to close the popup
   close_button = customtkinter.CTkButton(popup, text="Close", command=popup.destroy)
-  close_button.pack()
+  close_button.place(relx=0.5,rely=0.5,anchor=customtkinter.CENTER)
 
-async def Apply_operation(filenames,operation):
-    
-    if filenames == 0:
+async def Apply_operation(operation):
+    global filenames
+    if len(filenames) == 0:
       show_popup('Please choose an image to upload.')
       return
     
@@ -98,14 +100,11 @@ async def Apply_operation(filenames,operation):
         download_link , instance_id = await ALB_API.send_image_processing_request(file, ALB_operations[operation], image_name, s3_bucket)
         recent_images[image_name]= download_link
         add_recent_images(image_name.split('_')[1], operation, download_link)
-    filenames=()
-    
-
+    filenames.clear()
     uplaod_frame.pack_forget()
     inner_frame2.pack_forget()
     upload_btn.pack(expand=True)
     inner_frame2.pack(expand=True)
-
 
 frame1 = customtkinter.CTkFrame(master=app ,width=300,height=600,border_width=1,corner_radius=15,fg_color='#f2f2f2')
 frame1.pack(side='right',padx=40)
@@ -137,7 +136,7 @@ operations.pack(expand = True)
 # operatin2_button = customtkinter.CTkButton(master=inner_frame2,text='Operation 2',width=200,height=35,corner_radius=20,fg_color='#134C9F')
 # operatin3_button = customtkinter.CTkButton(master=inner_frame2,text='Operation 3',width=200,height=35,corner_radius=20,fg_color='#134C9F')
 # operatin4_button = customtkinter.CTkButton(master=inner_frame2,text='Operation 4',width=200,height=35,corner_radius=20,fg_color='#134C9F')
-Apply_button = customtkinter.CTkButton(master=inner_frame2,text='Apply',width=200,height=35,corner_radius=20,fg_color='#2E3031', command=lambda: asyncio.run(Apply_operation(filenames, operations.get())))
+Apply_button = customtkinter.CTkButton(master=inner_frame2,text='Apply',width=200,height=35,corner_radius=20,fg_color='#2E3031', command=lambda: asyncio.run(Apply_operation(operations.get())))
 # operatin2_button.pack(expand=True)
 # operatin3_button.pack(expand=True)
 # operatin4_button.pack(expand=True)
@@ -241,49 +240,49 @@ def are_not_dicts_equal(dict1, dict2):
 
 
 
-def update_health_dictionary():
+# def update_health_dictionary():
 
-    global global_all_instances_health
-    old_dict_instances = {}
+#     global global_all_instances_health
+#     old_dict_instances = {}
 
-    while True:
+#     while True:
     
-        global_all_instances_health = main_operations.get_instances_health(TARGET_GROUP_ARN)
-        print(global_all_instances_health)
+#         global_all_instances_health = main_operations.get_instances_health(TARGET_GROUP_ARN)
+#         print(global_all_instances_health)
 
-        if are_not_dicts_equal(old_dict_instances,global_all_instances_health):
-          for instance_id, health_status in global_all_instances_health.items():
+#         if are_not_dicts_equal(old_dict_instances,global_all_instances_health):
+#           for instance_id, health_status in global_all_instances_health.items():
 
-            frame_state1 = customtkinter.CTkFrame(master=machines_frame ,width=150,height=150,fg_color="#f2f2f2")
-            frame_state1.pack(side='right',padx=55)
-            cloud_icon1 = customtkinter.CTkImage(Image.open('GUI test/cloud-server.png'), size=(100,100))
-            cloud_label1 = customtkinter.CTkLabel(master=frame_state1,image=cloud_icon1, text='')
-            cloud_label1.pack()
+#             frame_state1 = customtkinter.CTkFrame(master=machines_frame ,width=150,height=150,fg_color="#f2f2f2")
+#             frame_state1.pack(side='right',padx=55)
+#             cloud_icon1 = customtkinter.CTkImage(Image.open('GUI test/cloud-server.png'), size=(100,100))
+#             cloud_label1 = customtkinter.CTkLabel(master=frame_state1,image=cloud_icon1, text='')
+#             cloud_label1.pack()
 
-            # Create labels for instance ID and health status separately
-            instance_id_label = customtkinter.CTkLabel(master=frame_state1, text=f'{instance_id}\nStatus:')
-            health_status_label = customtkinter.CTkLabel(master=frame_state1, text=f'{health_status}')
+#             # Create labels for instance ID and health status separately
+#             instance_id_label = customtkinter.CTkLabel(master=frame_state1, text=f'{instance_id}\nStatus:')
+#             health_status_label = customtkinter.CTkLabel(master=frame_state1, text=f'{health_status}')
 
-            # Set the foreground color based on the health status
-            if health_status == 'healthy':
-              health_status_label.config(fg='green')
-            elif health_status == 'unhealthy':
-              health_status_label.config(fg='red')
+#             # Set the foreground color based on the health status
+#             if health_status == 'healthy':
+#               health_status_label.config(fg='green')
+#             elif health_status == 'unhealthy':
+#               health_status_label.config(fg='red')
             
-            instance_id_label.pack()
-            health_status_label.pack()
+#             instance_id_label.pack()
+#             health_status_label.pack()
 
-            # if health_status == 'healthy':
-            #   state_label1 = customtkinter.CTkLabel(master=frame_state1, text=f'{instance_id}\nStatus: {health_status}')
-            # elif health_status == 'unhealthy':
-            #   state_label1 = customtkinter.CTkLabel(master=frame_state1, text=f'{instance_id}\nStatus: {health_status}')
-            # state_label1.pack()
+#             # if health_status == 'healthy':
+#             #   state_label1 = customtkinter.CTkLabel(master=frame_state1, text=f'{instance_id}\nStatus: {health_status}')
+#             # elif health_status == 'unhealthy':
+#             #   state_label1 = customtkinter.CTkLabel(master=frame_state1, text=f'{instance_id}\nStatus: {health_status}')
+#             # state_label1.pack()
 
-        old_dict_instances = global_all_instances_health
-        #GUI update status and machines
-        time.sleep(30)
+#         old_dict_instances = global_all_instances_health
+#         #GUI update status and machines
+#         time.sleep(30)
 
-thread = threading.Thread(target=update_health_dictionary)
-thread.start()
+# thread = threading.Thread(target=update_health_dictionary)
+# thread.start()
 app.mainloop()
-thread.join()
+# thread.join()
