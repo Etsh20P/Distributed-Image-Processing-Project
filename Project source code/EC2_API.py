@@ -230,7 +230,7 @@ def create_ec2_instance(): #instance_name
     )
 
     instance[0].wait_until_running()
-    time.sleep(45)
+    time.sleep(60)
     print ("instance created successfully")
     return instance[0].id  # Return the instance ID
 
@@ -270,7 +270,7 @@ def run_ec2_instance(instance_id):
         instance = ec2.Instance(instance_id)
         instance.start()
         instance.wait_until_running() #######
-        time.sleep(45)
+        time.sleep(60)
         print(f"Instance {instance_id} started successfully.")
     except Exception as e:
         print(f"Error starting instance {instance_id}: {str(e)}")

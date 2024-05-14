@@ -116,10 +116,10 @@ def count_healthy_instances(instance_status_dict):
 def add_instance_to_target():
     new_instance_id = EC2_API.create_ec2_instance()  # Create new instances
     EC2_API.assign_iam_role_to_instance(new_instance_id, 'S3-Access')
+    EC2_API.add_instance_to_target_group(new_instance_id, TARGET_GROUP_ARN)
     ssh = EC2_API.initialize_ssh_connection(new_instance_id)
     EC2_API.execute_ssh_commands(ssh)
     EC2_API.modify_instance_metadata_options(new_instance_id)
-    EC2_API.add_instance_to_target_group(new_instance_id, TARGET_GROUP_ARN)
     EC2_API.upload_file(IMAGE_PROCESSING_SCRIPT_PATH, REMOTE_SCRIPT_PATH, ssh)
     EC2_API.execute_remote_script(REMOTE_SCRIPT_PATH, ssh)
 
@@ -252,40 +252,41 @@ def auto_scaling_and_Fault_tolerance():
 #         time.sleep(30)
 
 
-# def main():
-#     global request_count
+def main():
+    global request_count
     
    
   
-    ## try to test the get_req_count
-    ## try to link the requests count with the request of the ALB file
-    ## link with gui
+    # try to test the get_req_count
+    # try to link the requests count with the request of the ALB file
+    # link with gui
 
-# EC2_API.run_ec2_instance('i-043689d8f63d97b64')
-# ssh = EC2_API.initialize_ssh_connection('i-043689d8f63d97b64')
-# EC2_API.execute_remote_script(REMOTE_SCRIPT_PATH,ssh)
+    # EC2_API.run_ec2_instance('i-043689d8f63d97b64')
+    # ssh = EC2_API.initialize_ssh_connection('i-043689d8f63d97b64')
+    # EC2_API.execute_remote_script(REMOTE_SCRIPT_PATH,ssh)
 
-# EC2_API.run_ec2_instance('i-03667afc59f078d52')
-# ssh = EC2_API.initialize_ssh_connection('i-03667afc59f078d52')
-# EC2_API.execute_remote_script(REMOTE_SCRIPT_PATH,ssh)
+    # EC2_API.run_ec2_instance('i-03667afc59f078d52')
+    # ssh = EC2_API.initialize_ssh_connection('i-03667afc59f078d52')
+    # EC2_API.execute_remote_script(REMOTE_SCRIPT_PATH,ssh)
 
     # print(get_instances_health(TARGET_GROUP_ARN))
 
     
-    ######################################################################################
-    # Scale_and_fault_thread = threading.Thread(target=auto_scaling_and_Fault_tolerance)
-    # Scale_and_fault_thread.start()
+    #####################################################################################
+    Scale_and_fault_thread = threading.Thread(target=auto_scaling_and_Fault_tolerance)
+    Scale_and_fault_thread.start()
 
-    # time.sleep(100)
+    time.sleep(30)
 
-    # # request_count = 80
+    request_count = 48
 
-    # # time.sleep(450)
+    time.sleep(450)
 
-    # request_count = 5
-    # Scale_and_fault_thread.join()
+    request_count = 3
+
+    Scale_and_fault_thread.join()
     
     
 
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()

@@ -37,12 +37,12 @@ screen_width = app.winfo_screenwidth()
 screen_height = app.winfo_screenheight()
 app.geometry(f"{screen_width}x{screen_height}")
 upload_icon = customtkinter.CTkImage(Image.open('GUI test/upload.png'), size=(35,35))
-app_image = customtkinter.CTkImage(Image.open('GUI test/setting_1.png'), size=(70,70))
+app_image = customtkinter.CTkImage(Image.open('GUI test/setting_1.png'), size=(50,50))
 app_image_label = customtkinter.CTkLabel(master=app,image=app_image, text='')
-app_image_label.place(x=80,y=10)
+app_image_label.place(x=10,y=10)
 my_font = customtkinter.CTkFont(family='Helvetica',size=16, weight="bold")
 imagePro_label = customtkinter.CTkLabel(master=app, text='Image Pro', font=my_font)
-imagePro_label.place(x=160,y=40)
+imagePro_label.place(x=65,y=32)
 
 
 ALB_operations = {'Color Inversion':'color_inversion','Grayscale':'grayscale', 'Blur':'blur','Edge Detection':'edge_detection', 'Thresholding':'thresholding','Line Detection':'line_detection', 'Frame Contour Detection':'frame_contour_detection', 'Morphological operations':'morphological_operations'}
@@ -99,9 +99,27 @@ def show_popup(message):
   close_button.place(relx=0.5,rely=0.5,anchor=customtkinter.CENTER)
 
 
+async def apply_operation_async():
+    await Apply_operation(operations.get())
+
+def apply_async():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(apply_operation_async())
+
+def apply_async_thread():
+    thread = threading.Thread(target=apply_async)
+    thread.start()
+
+
 async def Apply_operation(operation):
-    
+        
     global request_count, filenames
+
+    uplaod_frame.pack_forget()
+    inner_frame2.pack_forget()
+    upload_btn.pack(expand=True)
+    inner_frame2.pack(expand=True)
     
     if len(filenames) == 0:
       show_popup('Please choose an image to upload.')
@@ -114,6 +132,7 @@ async def Apply_operation(operation):
     s3_bucket='dist-frank-proj'
 
     for file in filenames:
+        
         image_url = urlparse(file)                   
         image_name = operation + '_' + os.path.basename(image_url.path)  
         download_link , instance_id = await ALB_API.send_image_processing_request(file, ALB_operations[operation], image_name, s3_bucket)
@@ -121,13 +140,14 @@ async def Apply_operation(operation):
         add_recent_images(image_name.split('_')[1], operation, download_link)
         request_count +=1
     
+    progress_bar.configure(mode='determinate')
+    progress_bar.set(1)
+    progress_bar.stop()
+
     print(request_count)
 
     filenames.clear()
-    uplaod_frame.pack_forget()
-    inner_frame2.pack_forget()
-    upload_btn.pack(expand=True)
-    inner_frame2.pack(expand=True)
+    
 
 
 def operation_selected(operation):
@@ -164,7 +184,12 @@ operations.pack(expand = True)
 # operatin2_button = customtkinter.CTkButton(master=inner_frame2,text='Operation 2',width=200,height=35,corner_radius=20,fg_color='#134C9F')
 # operatin3_button = customtkinter.CTkButton(master=inner_frame2,text='Operation 3',width=200,height=35,corner_radius=20,fg_color='#134C9F')
 # operatin4_button = customtkinter.CTkButton(master=inner_frame2,text='Operation 4',width=200,height=35,corner_radius=20,fg_color='#134C9F')
-Apply_button = customtkinter.CTkButton(master=inner_frame2,text='Apply',width=200,height=35,corner_radius=20,fg_color='#3e3c3c', command=lambda: asyncio.run(Apply_operation(operations.get())))
+
+# lambda: asyncio.run(Apply_operation(operations.get()))
+
+
+    
+Apply_button = customtkinter.CTkButton(master=inner_frame2,text='Apply',width=200,height=35,corner_radius=20,fg_color='#3e3c3c', command= apply_async_thread)
 # operatin2_button.pack(expand=True)
 # operatin3_button.pack(expand=True)
 # operatin4_button.pack(expand=True)
@@ -207,10 +232,10 @@ machines_frame.place(x=245, y=100)
 
 
 ######################### PROGRESS BAR ##############################
-progress_bar = customtkinter.CTkProgressBar(master=app, width=650, height=10, progress_color="#244b83")
+progress_bar = customtkinter.CTkProgressBar(master=app, width=650, height=10, progress_color="#244b83",mode='indeterminate',indeterminate_speed=1)
 progress_label = customtkinter.CTkLabel(master=app,text="Progress 40%")
 progress_bar.place(x=250,y=350)
-progress_label.place(x=270,y=320)
+progress_bar.start()
 inversion_progress = customtkinter.CTkLabel(master=app, text="Finished color inversion...")
 inversion_progress.place(x=730,y=320)
 
