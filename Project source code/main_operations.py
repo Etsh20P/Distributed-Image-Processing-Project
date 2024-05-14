@@ -116,10 +116,10 @@ def count_healthy_instances(instance_status_dict):
 def add_instance_to_target():
     new_instance_id = EC2_API.create_ec2_instance()  # Create new instances
     EC2_API.assign_iam_role_to_instance(new_instance_id, 'S3-Access')
-    EC2_API.add_instance_to_target_group(new_instance_id, TARGET_GROUP_ARN)
     ssh = EC2_API.initialize_ssh_connection(new_instance_id)
     EC2_API.execute_ssh_commands(ssh)
     EC2_API.modify_instance_metadata_options(new_instance_id)
+    EC2_API.add_instance_to_target_group(new_instance_id, TARGET_GROUP_ARN)
     EC2_API.upload_file(IMAGE_PROCESSING_SCRIPT_PATH, REMOTE_SCRIPT_PATH, ssh)
     EC2_API.execute_remote_script(REMOTE_SCRIPT_PATH, ssh)
 

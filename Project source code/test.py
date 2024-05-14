@@ -46,12 +46,12 @@ imagePro_label.place(x=160,y=40)
 
 
 ALB_operations = {'Color Inversion':'color_inversion','Grayscale':'grayscale', 'Blur':'blur','Edge Detection':'edge_detection', 'Thresholding':'thresholding','Line Detection':'line_detection', 'Frame Contour Detection':'frame_contour_detection', 'Morphological operations':'morphological_operations'}
-filenames=()
+filenames=[]
 recent_images = {}
 ####################### RIGHT FRAME #########################
 def upload_images():
     global filenames
-    filenames = filedialog.askopenfilenames(multiple=True)
+    filenames = list(filedialog.askopenfilenames(multiple=True))
     if len(filenames) == 1:
         display_single_image(filenames[0])
         uplaod_frame.pack(expand=True)
@@ -85,23 +85,25 @@ def display_multiple_images(filenames):
 
 def show_popup(message):
   # Create a popup window
-  popup = customtkinter.CTkToplevel()
-  popup.title("This is a Pop-up Window")
-  popup.geometry("300x150")  # Set size
+  popup = customtkinter.CTkToplevel(master=app, fg_color="darkgray")
+  popup.attributes('-topmost', True)
+  popup.title("Error!")
+  popup.geometry('300x150+500+300')  # Set size
 
   # Label within the popup
   label = customtkinter.CTkLabel(popup, text=message)
-  label.pack()
+  label.place(relx=0.5,rely=0.3, anchor=customtkinter.CENTER)
 
   # Button to close the popup
   close_button = customtkinter.CTkButton(popup, text="Close", command=popup.destroy)
-  close_button.pack()
+  close_button.place(relx=0.5,rely=0.5,anchor=customtkinter.CENTER)
 
-async def Apply_operation(filenames,operation):
+
+async def Apply_operation(operation):
     
-    global request_count
+    global request_count, filenames
     
-    if filenames == 0:
+    if len(filenames) == 0:
       show_popup('Please choose an image to upload.')
       return
     
@@ -120,27 +122,30 @@ async def Apply_operation(filenames,operation):
         request_count +=1
     
     print(request_count)
-    filenames=()
-    
 
+    filenames.clear()
     uplaod_frame.pack_forget()
     inner_frame2.pack_forget()
     upload_btn.pack(expand=True)
     inner_frame2.pack(expand=True)
 
 
+def operation_selected(operation):
+    operations.configure(fg_color="#244b83", text_color="white")
+    
+
 frame1 = customtkinter.CTkFrame(master=app ,width=300,height=600,border_width=1,corner_radius=15,fg_color='#f2f2f2')
 frame1.pack(side='right',padx=40)
 frame1.pack_propagate(False)
-upload_btn = customtkinter.CTkButton(master = frame1,text='Upload Image',image=upload_icon,compound='top' ,text_color='black' ,width=250, height=250,fg_color='#76BADC', corner_radius=15, command=upload_images)
-uplaod_frame = customtkinter.CTkFrame(master = frame1, width=250, height=260,fg_color='#76BADC',corner_radius=15)
+upload_btn = customtkinter.CTkButton(master = frame1,text='Upload Image',image=upload_icon,compound='top' ,text_color='black' ,width=250, height=250,fg_color='#8ebcff', corner_radius=15, command=upload_images)
+uplaod_frame = customtkinter.CTkFrame(master = frame1, width=250, height=260,fg_color='#8ebcff',corner_radius=15)
 uplaod_frame.pack_propagate(False)
 upload_label = customtkinter.CTkLabel(master=uplaod_frame,text='')
 upload_label.pack(pady=10)
 remaining_label = customtkinter.CTkLabel(master=uplaod_frame,text='')
-remaining_label_font= customtkinter.CTkFont(family='Helvetica', weight='bold',size=14)
+remaining_label_font= customtkinter.CTkFont(family='source sans pro', weight='bold',size=14)
 # remaining_label.pack()
-inner_frame2 = customtkinter.CTkFrame(master = frame1, width=250, height=150,fg_color='#76BADC',corner_radius=15)
+inner_frame2 = customtkinter.CTkFrame(master = frame1, width=250, height=150,fg_color='#8ebcff',corner_radius=15)
 
 # **Centering the inner frames:**
 # Use `pack` with `expand=True` for both frames
@@ -151,7 +156,7 @@ inner_frame2.pack_propagate(False)
 operation_label = customtkinter.CTkLabel(master=inner_frame2, text='Choose Operation')
 operation_label.pack(anchor='nw',padx=5, pady=5)
 operation_values = ['Color Inversion','Grayscale', 'Blur','Edge Detection', 'Thresholding','Line Detection', 'Frame Contour Detection', 'Morphological operations']
-operations = customtkinter.CTkComboBox(master =inner_frame2, width = 200, height=35, values=operation_values,corner_radius=15, state='readonly' )
+operations = customtkinter.CTkComboBox(master =inner_frame2, width = 200, height=35, values=operation_values,corner_radius=15, state='readonly', command=operation_selected )
 operations.pack(expand = True)
 # inversion_button = customtkinter.CTkButton(master=inner_frame2,text='Color Inversion',width=200,height=35,corner_radius=20,fg_color='#134C9F')
 # inversion_button.pack(expand=True)
@@ -159,7 +164,7 @@ operations.pack(expand = True)
 # operatin2_button = customtkinter.CTkButton(master=inner_frame2,text='Operation 2',width=200,height=35,corner_radius=20,fg_color='#134C9F')
 # operatin3_button = customtkinter.CTkButton(master=inner_frame2,text='Operation 3',width=200,height=35,corner_radius=20,fg_color='#134C9F')
 # operatin4_button = customtkinter.CTkButton(master=inner_frame2,text='Operation 4',width=200,height=35,corner_radius=20,fg_color='#134C9F')
-Apply_button = customtkinter.CTkButton(master=inner_frame2,text='Apply',width=200,height=35,corner_radius=20,fg_color='#2E3031', command=lambda: asyncio.run(Apply_operation(filenames, operations.get())))
+Apply_button = customtkinter.CTkButton(master=inner_frame2,text='Apply',width=200,height=35,corner_radius=20,fg_color='#3e3c3c', command=lambda: asyncio.run(Apply_operation(operations.get())))
 # operatin2_button.pack(expand=True)
 # operatin3_button.pack(expand=True)
 # operatin4_button.pack(expand=True)
@@ -171,10 +176,11 @@ Apply_button.pack(expand=True)
 
 ############################ END OF RIGHT FRAME ##################################
 
-
-
+instnaces_font = customtkinter.CTkFont(family='source sans pro',size=14, weight="bold", underline=True)
+instances_number_label = customtkinter.CTkLabel(master=app,text="Total VMs: 0", font=instnaces_font)
+instances_number_label.place(x=245,y=50)
 ########################## FRAME THAT HOLDS THE MACHINES STATUES ###########################
-machines_frame = customtkinter.CTkScrollableFrame(master=app ,width=630,height=175,fg_color="#f2f2f2",border_width=1,corner_radius=15,orientation='horizontal')
+machines_frame = customtkinter.CTkScrollableFrame(master=app ,width=630,height=175,fg_color="#f2f2f2",border_width=0,corner_radius=15,orientation='horizontal', scrollbar_fg_color= "#f2f2f2",scrollbar_button_color= "#f2f2f2",scrollbar_button_hover_color="#f2f2f2")
 machines_frame.place(x=245, y=100)
 
 
@@ -201,14 +207,14 @@ machines_frame.place(x=245, y=100)
 
 
 ######################### PROGRESS BAR ##############################
-progress_bar = customtkinter.CTkProgressBar(master=app, width=650, height=10)
+progress_bar = customtkinter.CTkProgressBar(master=app, width=650, height=10, progress_color="#244b83")
 progress_label = customtkinter.CTkLabel(master=app,text="Progress 40%")
 progress_bar.place(x=250,y=350)
 progress_label.place(x=270,y=320)
 inversion_progress = customtkinter.CTkLabel(master=app, text="Finished color inversion...")
 inversion_progress.place(x=730,y=320)
 
-my_font2 = customtkinter.CTkFont(family='Helvetica',size=18, weight="bold")
+my_font2 = customtkinter.CTkFont(family='source sans pro',size=18, weight="bold")
 receent_label = customtkinter.CTkLabel(master=app, text="Recent Images",font=my_font2)
 receent_label.place(x=250,y=380)
 ######################### END OF PROGRESS BAR ##############################
@@ -219,7 +225,7 @@ receent_label.place(x=250,y=380)
 recent_frame= customtkinter.CTkScrollableFrame(master=app, width=630,height=200,border_width=1,corner_radius=15, fg_color='#f2f2f2')
 recent_frame.place(x=245,y=420)
 
-gallery_image = customtkinter.CTkImage(Image.open('GUI test/image-gallery.png'), size=(32,32))
+gallery_image = customtkinter.CTkImage(Image.open('GUI test/photo.png'), size=(32,32))
 download_image = customtkinter.CTkImage(Image.open('GUI test/downloading.png'), size=(32,32))
 
 def add_recent_images(image_name, operation, download_link):
@@ -275,6 +281,8 @@ def update_health_dictionary():
 
         if are_not_dicts_equal(old_dict_instances,global_all_instances_health):
           i = 1
+
+          instances_number_label.configure(text=f"Total VMs: {len(list(global_all_instances_health.keys()))}")
 
           for widget in machines_frame.winfo_children():
 
