@@ -9,6 +9,7 @@ import time
 import main_operations
 import ALB_API
 import asyncio
+import threading
 
 customtkinter.set_appearance_mode("light")  # Modes: system (default), light, dark
 customtkinter.set_default_color_theme("dark-blue")  # Themes: blue (default), dark-blue, green
@@ -67,7 +68,7 @@ def display_multiple_images(filenames):
 
 def show_popup(message):
   # Create a popup window
-  popup = customtkinter.Toplevel()
+  popup = customtkinter.CTkToplevel()
   popup.title("This is a Pop-up Window")
   popup.geometry("300x150")  # Set size
 
@@ -80,12 +81,15 @@ def show_popup(message):
   close_button.pack()
 
 async def Apply_operation(filenames,operation):
+    
     if filenames == 0:
-       show_popup('Please choose an image to upload.')
-       return
+      show_popup('Please choose an image to upload.')
+      return
+    
     elif operation == '':
-       show_popup("Please choose an operation.")
-       return
+      show_popup("Please choose an operation.")
+      return
+    
     s3_bucket='dist-frank-proj'
 
     for file in filenames:
@@ -151,21 +155,7 @@ Apply_button.pack(expand=True)
 machines_frame = customtkinter.CTkScrollableFrame(master=app ,width=630,height=150,fg_color="#f2f2f2",border_width=1,corner_radius=15,orientation='horizontal')
 machines_frame.place(x=245, y=100)
 
-for i in range (10):
-  frame_state1 = customtkinter.CTkFrame(master=machines_frame ,width=150,height=150,fg_color="#f2f2f2")
-  frame_state1.pack(side='right',padx=55)
-  # frame_state1.pack_propagate(False)
-  # frame_state2 = customtkinter.CTkFrame(master=machines_frame ,width=150,height=150,fg_color="#f2f2f2")
-  # frame_state2.pack(side='right',padx=25)
-  # frame_state2.pack_propagate(False)
-  # frame_state3 = customtkinter.CTkFrame(master=machines_frame ,width=150,height=150,fg_color="#f2f2f2")
-  # frame_state3.pack(side='right',padx=25)
-  # frame_state3.pack_propagate(False)
-  cloud_icon1 = customtkinter.CTkImage(Image.open('GUI test/cloud-server.png'), size=(100,100))
-  cloud_label1 = customtkinter.CTkLabel(master=frame_state1,image=cloud_icon1, text='')
-  cloud_label1.pack()
-  state_label1 = customtkinter.CTkLabel(master=frame_state1, text='VM Name\nHealth: Status')
-  state_label1.pack()
+
 
 
 # cloud_icon1 = customtkinter.CTkImage(Image.open('cloud-server.png'), size=(100,100))
@@ -226,17 +216,74 @@ def add_recent_images(image_name, operation, download_link):
 
 
 
+def are_not_dicts_equal(dict1, dict2):
+    """
+    Check if two dictionaries are equal.
+
+    Args:
+    - dict1 (dict): First dictionary.
+    - dict2 (dict): Second dictionary.
+
+    Returns:
+    - bool: True if dictionaries are equal, False otherwise.
+    """
+    if len(dict1) != len(dict2):
+        return True
+
+    for key, value in dict1.items():
+        if key not in dict2 or dict2[key] != value:
+            return True
+
+    return False
+
+
+
+
 
 
 def update_health_dictionary():
 
     global global_all_instances_health
+    old_dict_instances = {}
 
     while True:
     
         global_all_instances_health = main_operations.get_instances_health(TARGET_GROUP_ARN)
+        print(global_all_instances_health)
+
+        if are_not_dicts_equal(old_dict_instances,global_all_instances_health):
+          for instance_id, health_status in global_all_instances_health.items():
+
+            frame_state1 = customtkinter.CTkFrame(master=machines_frame ,width=150,height=150,fg_color="#f2f2f2")
+            frame_state1.pack(side='right',padx=55)
+            cloud_icon1 = customtkinter.CTkImage(Image.open('GUI test/cloud-server.png'), size=(100,100))
+            cloud_label1 = customtkinter.CTkLabel(master=frame_state1,image=cloud_icon1, text='')
+            cloud_label1.pack()
+
+            # Create labels for instance ID and health status separately
+            instance_id_label = customtkinter.CTkLabel(master=frame_state1, text=f'{instance_id}\nStatus:')
+            health_status_label = customtkinter.CTkLabel(master=frame_state1, text=f'{health_status}')
+
+            # Set the foreground color based on the health status
+            if health_status == 'healthy':
+              health_status_label.config(fg='green')
+            elif health_status == 'unhealthy':
+              health_status_label.config(fg='red')
+            
+            instance_id_label.pack()
+            health_status_label.pack()
+
+            # if health_status == 'healthy':
+            #   state_label1 = customtkinter.CTkLabel(master=frame_state1, text=f'{instance_id}\nStatus: {health_status}')
+            # elif health_status == 'unhealthy':
+            #   state_label1 = customtkinter.CTkLabel(master=frame_state1, text=f'{instance_id}\nStatus: {health_status}')
+            # state_label1.pack()
+
+        old_dict_instances = global_all_instances_health
         #GUI update status and machines
         time.sleep(30)
 
-        
+thread = threading.Thread(target=update_health_dictionary)
+thread.start()
 app.mainloop()
+thread.join()
