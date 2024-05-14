@@ -85,13 +85,13 @@ def display_multiple_images(filenames):
 
 def show_popup(message):
   # Create a popup window
-  popup = customtkinter.CTkToplevel(master=app, fg_color="darkgray")
+  popup = customtkinter.CTkToplevel(master=app, fg_color="black")
   popup.attributes('-topmost', True)
   popup.title("Error!")
   popup.geometry('300x150+500+300')  # Set size
 
   # Label within the popup
-  label = customtkinter.CTkLabel(popup, text=message)
+  label = customtkinter.CTkLabel(popup, text=message, text_color="white")
   label.place(relx=0.5,rely=0.3, anchor=customtkinter.CENTER)
 
   # Button to close the popup
@@ -114,39 +114,66 @@ def apply_async_thread():
 
 async def Apply_operation(operation):
         
-    global request_count, filenames
+  global request_count, filenames
 
-    uplaod_frame.pack_forget()
-    inner_frame2.pack_forget()
-    upload_btn.pack(expand=True)
-    inner_frame2.pack(expand=True)
-    
-    if len(filenames) == 0:
-      show_popup('Please choose an image to upload.')
-      return
-    
-    elif operation == '':
-      show_popup("Please choose an operation.")
-      return
-    
-    s3_bucket='dist-frank-proj'
+  uplaod_frame.pack_forget()
+  inner_frame2.pack_forget()
+  upload_btn.pack(expand=True)
+  inner_frame2.pack(expand=True)
+  progress_label.configure(text="Progress 0%")
 
-    for file in filenames:
-        
-        image_url = urlparse(file)                   
-        image_name = operation + '_' + os.path.basename(image_url.path)  
-        download_link , instance_id = await ALB_API.send_image_processing_request(file, ALB_operations[operation], image_name, s3_bucket)
-        recent_images[image_name]= download_link
-        add_recent_images(image_name.split('_')[1], operation, download_link)
-        request_count +=1
+  if len(filenames) == 0:
+    show_popup('Please choose an image to upload.')
+    return
+  
+  elif operation == '':
+    show_popup("Please choose an operation.")
+    return
+  
+
+
+  if len(filenames) == 1:
+    progress_bar.configure(mode="indeterminate",indeterminate_speed=0.5)
+    progress_bar.start()
+    progress_label.configure(text=f'Progress ...')
+
+  else:
+      progress_bar.configure(mode="determinate", determinate_speed=0.7)
+      step_size = round(1/len(filenames), 1)
+      step_size2=0
+      
+      
+
+  s3_bucket='dist-frank-proj'
+
+
+  for file in filenames:
+      
+    image_url = urlparse(file)                   
+    image_name = operation + '_' + os.path.basename(image_url.path)  
+    download_link , instance_id = await ALB_API.send_image_processing_request(file, ALB_operations[operation], image_name, s3_bucket)
+    recent_images[image_name]= download_link
+    add_recent_images(image_name.split('_')[1], operation, download_link)
+
     
-    progress_bar.configure(mode='determinate')
-    progress_bar.set(1)
-    progress_bar.stop()
+    if len(filenames) > 1:
+      step_size2 += step_size
+      progress_bar.set(step_size2)
+      progress_level = round(step_size2*100, 0)
+      progress_label.configure(text=f'Progress {progress_level}%')
+    
 
-    print(request_count)
+    request_count +=1
+  
+  if len(filenames) == 1:
+      progress_bar.configure(mode="determinate")
+      progress_bar.stop()
+      progress_label.configure(text='Progress 100%')
 
-    filenames.clear()
+  progress_bar.set(1)
+
+  print(request_count)
+  filenames.clear()
     
 
 
@@ -232,12 +259,13 @@ machines_frame.place(x=245, y=100)
 
 
 ######################### PROGRESS BAR ##############################
-progress_bar = customtkinter.CTkProgressBar(master=app, width=650, height=10, progress_color="#244b83",mode='indeterminate',indeterminate_speed=1)
-progress_label = customtkinter.CTkLabel(master=app,text="Progress 40%")
+progress_bar = customtkinter.CTkProgressBar(master=app, width=650, height=10, progress_color="#244b83",mode='determinate')
+progress_bar.set(0)
+progress_label = customtkinter.CTkLabel(master=app,text="Progress 0%")
 progress_bar.place(x=250,y=350)
-progress_bar.start()
-inversion_progress = customtkinter.CTkLabel(master=app, text="Finished color inversion...")
-inversion_progress.place(x=730,y=320)
+progress_label.place(x=250,y=320)
+# inversion_progress = customtkinter.CTkLabel(master=app, text="Finished color inversion...")
+# inversion_progress.place(x=730,y=320)
 
 my_font2 = customtkinter.CTkFont(family='source sans pro',size=18, weight="bold")
 receent_label = customtkinter.CTkLabel(master=app, text="Recent Images",font=my_font2)
