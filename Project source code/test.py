@@ -333,7 +333,8 @@ def update_health_dictionary():
         print(global_all_instances_health)
 
         if are_not_dicts_equal(old_dict_instances,global_all_instances_health):
-          i = 1
+          
+          i = len(list(global_all_instances_health.keys()))
 
           instances_number_label.configure(text=f"Total VMs: {len(list(global_all_instances_health.keys()))}")
 
@@ -355,14 +356,14 @@ def update_health_dictionary():
 
             # Create labels for instance ID and health status separately
             instance_name = customtkinter.CTkLabel(master=frame_state1, text=f'VM {i}')
-            instance_id_label = customtkinter.CTkLabel(master=frame_state1, text=f'{instance_id}')
+            instance_id_label = customtkinter.CTkLabel(master=frame_state1, text=f'ID: {instance_id}')
             health_status_label = customtkinter.CTkLabel(master=frame_state1, text=f'Status: {health_status}')
 
             
             instance_name.pack()
             instance_id_label.pack()
             health_status_label.pack()
-            i +=1
+            i -=1
 
             # if health_status == 'healthy':
             #   state_label1 = customtkinter.CTkLabel(master=frame_state1, text=f'{instance_id}\nStatus: {health_status}')
