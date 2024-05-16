@@ -28,36 +28,6 @@ global_all_instances_health = {}
 
 
 
-def get_request_count(load_balancer_name):
-    # Initialize the CloudWatch client
-    cloudwatch_client = boto3.client('cloudwatch')
-
-    # Define the metric dimensions
-    dimensions = [
-        {
-            'Name': 'LoadBalancer',
-            'Value': load_balancer_name
-        }
-    ]
-
-    # Get the request count metric
-    response = cloudwatch_client.get_metric_statistics(
-        Namespace='AWS/ApplicationELB',
-        MetricName='RequestCount',
-        Dimensions=dimensions,
-        StartTime=datetime.utcnow() - timedelta(minutes=5),  # Adjust the time window as needed
-        EndTime=datetime.utcnow(),
-        Period=300,  # 5-minute period (300 seconds)
-        Statistics=['Sum']
-    )
-
-    # Extract the request count from the response
-    if 'Datapoints' in response and len(response['Datapoints']) > 0:
-        request_count = response['Datapoints'][-1]['Sum']
-    else:
-        request_count = 0
-
-    return request_count
 
 
 
@@ -173,28 +143,28 @@ def auto_scaling_and_Fault_tolerance():
         else:
             Needed_Vms = (request_count // REQUESTS_PER_INSTANCE) +1
         
-        desired_instances = Needed_Vms - existing_instances_count
+        actual_desired_instances = Needed_Vms - existing_instances_count
 
         # Check if scaling up is needed based on the calculated required instances
-        print(f"desired_instances = {desired_instances}, Needed_Vms= {Needed_Vms} , existing_instances= {existing_instances_count} , request_count= {request_count} ")
-        if (desired_instances < 0) and (desired_instances != 0):
-            desired_instances *= -1
-            for i in range(desired_instances):
+        print(f"desired_instances = {actual_desired_instances}, Needed_Vms= {Needed_Vms} , existing_instances= {existing_instances_count} , request_count= {request_count} ")
+        if (actual_desired_instances < 0) and (actual_desired_instances != 0):
+            actual_desired_instances *= -1
+            for i in range(actual_desired_instances):
 
                 if existing_instances_count <= DESIRED_INSTANCE_COUNT:
                     break
                 EC2_API.terminate_ec2_instance(list(all_instances_health.keys())[i])
                 existing_instances_count -= 1
                 
-        elif desired_instances != 0:
+        elif actual_desired_instances != 0:
 
-            if (desired_instances + existing_instances_count) >= MAX_NUMBER_OF_INSTANCES:
-                desired_instances = MAX_NUMBER_OF_INSTANCES - existing_instances_count
+            if (actual_desired_instances + existing_instances_count) >= MAX_NUMBER_OF_INSTANCES:
+                actual_desired_instances = MAX_NUMBER_OF_INSTANCES - existing_instances_count
 
-            if desired_instances != 0:
+            if actual_desired_instances != 0:
                 Auto_Scaling_flag = True
 
-            for _ in range(desired_instances):
+            for _ in range(actual_desired_instances):
                 instance_scale_thread = threading.Thread(target=add_instance_to_target)
                 instance_scale_thread.start()
         
@@ -252,41 +222,41 @@ def auto_scaling_and_Fault_tolerance():
 #         time.sleep(30)
 
 
-def main():
-    global request_count
+# def main():
+#     global request_count
     
    
   
-    # try to test the get_req_count
-    # try to link the requests count with the request of the ALB file
-    # link with gui
+#     # try to test the get_req_count
+#     # try to link the requests count with the request of the ALB file
+#     # link with gui
 
-    # EC2_API.run_ec2_instance('i-043689d8f63d97b64')
-    # ssh = EC2_API.initialize_ssh_connection('i-043689d8f63d97b64')
-    # EC2_API.execute_remote_script(REMOTE_SCRIPT_PATH,ssh)
+#     # EC2_API.run_ec2_instance('i-043689d8f63d97b64')
+#     # ssh = EC2_API.initialize_ssh_connection('i-043689d8f63d97b64')
+#     # EC2_API.execute_remote_script(REMOTE_SCRIPT_PATH,ssh)
 
-    # EC2_API.run_ec2_instance('i-03667afc59f078d52')
-    # ssh = EC2_API.initialize_ssh_connection('i-03667afc59f078d52')
-    # EC2_API.execute_remote_script(REMOTE_SCRIPT_PATH,ssh)
+#     # EC2_API.run_ec2_instance('i-03667afc59f078d52')
+#     # ssh = EC2_API.initialize_ssh_connection('i-03667afc59f078d52')
+#     # EC2_API.execute_remote_script(REMOTE_SCRIPT_PATH,ssh)
 
-    # print(get_instances_health(TARGET_GROUP_ARN))
+#     # print(get_instances_health(TARGET_GROUP_ARN))
 
     
-    #####################################################################################
-    Scale_and_fault_thread = threading.Thread(target=auto_scaling_and_Fault_tolerance)
-    Scale_and_fault_thread.start()
+#     #####################################################################################
+#     Scale_and_fault_thread = threading.Thread(target=auto_scaling_and_Fault_tolerance)
+#     Scale_and_fault_thread.start()
 
-    time.sleep(30)
+#     time.sleep(30)
 
-    request_count = 48
+#     request_count = 48
 
-    time.sleep(450)
+#     time.sleep(450)
 
-    request_count = 3
+#     request_count = 3
 
-    Scale_and_fault_thread.join()
+#     Scale_and_fault_thread.join()
     
     
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

@@ -8,7 +8,7 @@ import json
 
 async def send_image_processing_request(image_path, operation, output_name, s3_bucket):
     # Load balancer URL
-    load_balancer_url = 'http://Image-Processing-ALB-1566672608.eu-central-1.elb.amazonaws.com/process_image' 
+    load_balancer_url = 'http://Image-Processing-ALB-1924319251.eu-central-1.elb.amazonaws.com/process_image' 
 
     # Read the image file
     with open(image_path, 'rb') as image_file:
