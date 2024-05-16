@@ -137,7 +137,7 @@ def auto_scaling_and_Fault_tolerance():
             
         ###################################################### scaling ##################################################################
         # calculate the required instances based on request count
-        if request_count % 5 == 0:
+        if request_count % 3 == 0:
             Needed_Vms = request_count // REQUESTS_PER_INSTANCE
         
         else:
@@ -231,13 +231,13 @@ def auto_scaling_and_Fault_tolerance():
 #     # try to link the requests count with the request of the ALB file
 #     # link with gui
 
-#     # EC2_API.run_ec2_instance('i-043689d8f63d97b64')
-#     # ssh = EC2_API.initialize_ssh_connection('i-043689d8f63d97b64')
-#     # EC2_API.execute_remote_script(REMOTE_SCRIPT_PATH,ssh)
+# EC2_API.run_ec2_instance('i-0ef6f74543c8d27dc')
+# ssh = EC2_API.initialize_ssh_connection('i-0ef6f74543c8d27dc')
+# EC2_API.execute_remote_script(REMOTE_SCRIPT_PATH,ssh)
 
-#     # EC2_API.run_ec2_instance('i-03667afc59f078d52')
-#     # ssh = EC2_API.initialize_ssh_connection('i-03667afc59f078d52')
-#     # EC2_API.execute_remote_script(REMOTE_SCRIPT_PATH,ssh)
+# EC2_API.run_ec2_instance('i-0025c7ff8c7bef4ae')
+# ssh = EC2_API.initialize_ssh_connection('i-0025c7ff8c7bef4ae')
+# EC2_API.execute_remote_script(REMOTE_SCRIPT_PATH,ssh)
 
 #     # print(get_instances_health(TARGET_GROUP_ARN))
 

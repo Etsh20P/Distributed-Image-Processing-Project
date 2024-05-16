@@ -243,7 +243,6 @@ def terminate_ec2_instance(instance_id):
     try:
         instance = ec2.Instance(instance_id)
         instance.terminate()
-        print(f"Instance {instance_id} terminated successfully.")
     except Exception as e:
         print(f"Error terminating instance {instance_id}: {str(e)}")
 
