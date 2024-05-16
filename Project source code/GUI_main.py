@@ -39,8 +39,8 @@ app.title('Image Pro')
 screen_width = app.winfo_screenwidth()
 screen_height = app.winfo_screenheight()
 app.geometry(f"{screen_width}x{screen_height}")
-upload_icon = customtkinter.CTkImage(Image.open('GUI test/upload.png'), size=(35,35))
-app_image = customtkinter.CTkImage(Image.open('GUI test/setting_1.png'), size=(50,50))
+upload_icon = customtkinter.CTkImage(Image.open('GUI_needed_files/upload.png'), size=(35,35))
+app_image = customtkinter.CTkImage(Image.open('GUI_needed_files/setting_1.png'), size=(50,50))
 app_image_label = customtkinter.CTkLabel(master=app,image=app_image, text='')
 app_image_label.place(x=10,y=10)
 my_font = customtkinter.CTkFont(family=my_font_family,size=16, weight="bold")
@@ -300,8 +300,8 @@ def add_to_log(message_log):
 
 
 
-gallery_image = customtkinter.CTkImage(Image.open('GUI test/photo.png'), size=(32,32))
-download_image = customtkinter.CTkImage(Image.open('GUI test/downloading.png'), size=(32,32))
+gallery_image = customtkinter.CTkImage(Image.open('GUI_needed_files/photo.png'), size=(32,32))
+download_image = customtkinter.CTkImage(Image.open('GUI_needed_files/downloading.png'), size=(32,32))
 
 def add_recent_images(image_name, operation, download_link):
 
@@ -376,7 +376,7 @@ def update_health_dictionary():
 
             frame_state1 = customtkinter.CTkFrame(master=machines_frame ,width=150,height=150,fg_color="#f2f2f2")
             frame_state1.pack(side='right',padx=55)
-            cloud_icon1 = customtkinter.CTkImage(Image.open('GUI test/cloud-server.png'), size=(100,100))
+            cloud_icon1 = customtkinter.CTkImage(Image.open('GUI_needed_files/cloud-server.png'), size=(100,100))
             cloud_label1 = customtkinter.CTkLabel(master=frame_state1,image=cloud_icon1, text='')
             cloud_label1.pack()
 
