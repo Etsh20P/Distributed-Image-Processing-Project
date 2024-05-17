@@ -1,4 +1,4 @@
-# Image Processing Cloud Project
+# Distributed Image Processing Cloud Project
 
 <div align ="center">
   <img src="Project%20source%20code/GUI_needed_files/Image_Pro.png" alt="Logo"/>
