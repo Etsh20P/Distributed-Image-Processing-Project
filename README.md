@@ -12,7 +12,11 @@ The Image Processing Cloud Project leverages the power of cloud computing to pro
 
 Check out our [YouTube demo](https://youtu.be/1xnuI-0nm1c) to see the project in action across several VMs and computers.
 
-![Demo Screenshot](Project%20source%20code/GUI_needed_files/image_Demo.png)
+<div align ="center">
+  <a href="https://youtu.be/1xnuI-0nm1c" target="blank" title="Demo video link">
+    <img src="Project%20source%20code/GUI_needed_files/Image_Demo_Video.png" alt="Demo video link" title="Demo video link"/>
+  </a>
+</div>
 
 ## Features
 
