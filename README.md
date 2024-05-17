@@ -35,8 +35,8 @@ Check out our [YouTube demo](https://www.youtube.com/link-to-demo) to see the pr
 1. Clone the repository
 
     ```bash
-    git clone https://github.com/your-repo/image-processing-cloud.git
-    cd image-processing-cloud
+    git clone https://github.com/Etsh20P/Distributed-Image-Processing-Project.git
+    cd Project source code
     ```
 
 2. Install the required Python packages
