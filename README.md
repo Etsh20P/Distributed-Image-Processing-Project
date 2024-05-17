@@ -64,7 +64,7 @@ Check out our [YouTube demo](https://youtu.be/1xnuI-0nm1c) to see the project in
     python GUI_main.py
     ```
 
-2. **Start and run the initial 2 VMs in the system and execute the script on them (execute this code in main_operation.py file)**
+2. **Start and run the 2 initial VMs in the system and execute the script on them (execute this code in main_operation.py file)**
 
     ```python
     EC2_API.run_ec2_instance('i-i-0e46dff152f7d1361')
